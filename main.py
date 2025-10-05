@@ -255,16 +255,15 @@ try:
 
             screen.fill((255, 255, 71))
 
+            current_time_ms = time.time_ns() // 1_000_000  # преобразуем в миллисекунды
+
+            turbo_lst = [el for el in turbo_lst if current_time_ms - el[0] <= 300]
 
             if p_is_turbo:
-                if len(turbo_lst) <= 40:
-                    turbo_lst.append(pygame.rect.Rect(p.x, p.y, 45, 25))
-                else:
-                    for i in range(0, 1):
-                        turbo_lst.pop(0)
+                turbo_lst.append((current_time_ms, pygame.rect.Rect(p.x, p.y, 45, 25)))
 
-            for i in turbo_lst:
-                pygame.draw.rect(screen, (0, 140, 240), i)
+            for item in turbo_lst:
+                pygame.draw.rect(screen, (0, 140, 240), item[1])
 
             pygame.draw.rect(screen,(0, 255, 0), p)
             pygame.draw.rect(screen, (255, 0, 0), eggm)
