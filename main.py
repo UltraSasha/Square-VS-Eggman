@@ -1,4 +1,6 @@
-import pygame, random, time, os
+import pygame as pg
+
+import random, time, os
 import tkinter as tk
 
 import instruction
@@ -9,7 +11,7 @@ try:
 except:
     have_hak = False
 
-pygame.init()
+pg.init()
 
 
 def resolution():
@@ -21,7 +23,7 @@ def resolution():
 
 
 def topPanelHeight():
-    testFont = pygame.font.Font(size=50)
+    testFont = pg.font.Font(size=50)
     text = testFont.render(f"Test", True, (255, 255, 255))
     return text.get_height()
 
@@ -31,25 +33,25 @@ screen_y = 80
 MON_W, MON_H = resolution()
 current_w = MON_W * screen_w / 100
 current_h = MON_H * screen_y / 100
-font = pygame.font.Font(size=50)
-clock = pygame.time.Clock()
+font = pg.font.Font(size=50)
+clock = pg.time.Clock()
 
 top_panel_h = topPanelHeight() + 20
 
-screen = pygame.display.set_mode((current_w, current_h), pygame.RESIZABLE)
+screen = pg.display.set_mode((current_w, current_h), pg.RESIZABLE)
 
-pygame.display.set_caption("Squares And Coins")
+pg.display.set_caption("Squares And Coins")
 
 try:
-    pygame.display.set_icon(pygame.image.load('icon.png'))
+    pg.display.set_icon(pg.image.load('icon.png'))
 except:
     pass
 
 
-class objMiniTime(pygame.sprite.Sprite):
+class objMiniTime(pg.sprite.Sprite):
     def __init__(self):
         super().__init__()
-        self.image = pygame.image.load(os.path.join("Images", "microtime.png"))
+        self.image = pg.image.load(os.path.join("Images", "microtime.png"))
         self.image.convert_alpha()
         self.image.set_colorkey((0, 0, 0))
         self.rect = self.image.get_rect()
@@ -58,10 +60,18 @@ class objMiniTime(pygame.sprite.Sprite):
 
         self.type = "objMiniTime"
 
+class PlayerHide(pg.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        img = pg.image.load(os.path.join("Images", "empty.png"))
+        self.rect = img.get_rect()
+
+    def update(self, player_x, player_y):
+        self.rect.x = player_x
+        self.rect.y = player_y
 
 def level_up(curr_level, score):
     runMain(curr_level + 1, score + 3)
-
 
 def end(font, score, color_time, text="Игра завершена!"):
     screen.fill((255, 255, 71))
@@ -73,32 +83,32 @@ def end(font, score, color_time, text="Игра завершена!"):
     screen.blit(text_over1, (350, 350))
     screen.blit(text_over2, (350, 400))
 
-    pygame.display.flip()
+    pg.display.flip()
     expectation = bool(True)
 
     while expectation:
-        for e in pygame.event.get():
-            if e.type == pygame.QUIT:
-                pygame.quit()
+        for e in pg.event.get():
+            if e.type == pg.QUIT:
+                pg.quit()
                 expectation = False
                 exit()
 
-        key = pygame.key.get_pressed()
+        key = pg.key.get_pressed()
 
-        if key[pygame.K_SPACE]:
+        if key[pg.K_SPACE]:
             runMain()
 
 
 def start():
     global screen
-    screen = pygame.display.set_mode((current_w, current_h))
+    screen = pg.display.set_mode((current_w, current_h))
 
     run = True
     while run:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+        for event in pg.event.get():
+            if event.type == pg.QUIT:
                 run = False
-                pygame.quit()
+                pg.quit()
                 import sys
                 sys.exit()
 
@@ -107,10 +117,10 @@ def start():
         text1 = font.render("Игра вот-вот начнётся! Тебе", True, (0, 0, 0))
         text2 = font.render("нужно только нажать пробел!", True, (0, 0, 0))
 
-        big_font = pygame.font.Font(size=75)
+        big_font = pg.font.Font(size=75)
         text_welcome = big_font.render("Squares And Coins", True, (0, 0, 0))
 
-        mini_font = pygame.font.Font(None, 25)
+        mini_font = pg.font.Font(None, 25)
         text_instruction1 = mini_font.render(f"Что бы увидеть инструкцию,", True, (0, 0, 0))
         text_instruction2 = mini_font.render(f"            нажми i.", True, (0, 0, 0))
 
@@ -123,25 +133,26 @@ def start():
         screen.blit(text_instruction2, (screen.get_width() / 2 - 100, screen.get_height() - 20))
         screen.blit(text_welcome, (screen.get_width() / 3, screen.get_height() / 4))
 
-        if pygame.key.get_pressed()[pygame.K_SPACE]:
-            screen = pygame.display.set_mode((current_w, current_h), pygame.RESIZABLE)
+        if pg.key.get_pressed()[pg.K_SPACE]:
+            screen = pg.display.set_mode((current_w, current_h), pg.RESIZABLE)
             return
 
-        elif pygame.key.get_pressed()[pygame.K_i]:
+        elif pg.key.get_pressed()[pg.K_i]:
             instruction.instruction()
 
-        pygame.display.flip()
+        pg.display.flip()
         clock.tick(60)
 
 
 def runMain(lvl=1, score=0):
     global current_w, current_h
 
-    sprites = pygame.sprite.Group()
+    sprites = pg.sprite.Group()
+    hide_sprites = pg.sprite.Group()
 
     r = resolution()
     P_SIZE = 40
-    p = pygame.Rect(180, 180, P_SIZE, P_SIZE)
+    p = pg.Rect(180, 180, P_SIZE, P_SIZE)
     standart_speed_p = 5
     speed_p = 5
     turbo_speed = 9
@@ -149,8 +160,9 @@ def runMain(lvl=1, score=0):
     turbo_lst = []
 
     E_SIZE = 40
-    eggm = pygame.Rect(400, 400, E_SIZE, E_SIZE)
-    drive_e = standart_speed_p / 3
+    eggm = pg.rect.Rect(400, 400, E_SIZE, E_SIZE)
+    drive_e = standart_speed_p / 2.3
+    MINUS_DRIVE_EGGM = 2
 
     coin_xBegin = 10
     coin_xFinish = int(current_w - 10)
@@ -161,10 +173,13 @@ def runMain(lvl=1, score=0):
     time_retarder = objMiniTime()
     sprites.add(time_retarder)
 
+    player_hide = PlayerHide()
+    hide_sprites.add(player_hide)
+
     time_is_retach = bool(False)
 
     if have_hak:
-        p_help = pygame.rect.Rect(current_w, current_h, P_SIZE, P_SIZE)
+        p_help = pg.rect.Rect(current_w, current_h, P_SIZE, P_SIZE)
         alive_p_help = True
         speed_pHelp = 0.6
 
@@ -185,6 +200,8 @@ def runMain(lvl=1, score=0):
 
     last_score = score
     start_time = int(time.time())
+    start_time2 = None
+    counter = 0
 
     remaining_time = 120
     last_time = start_time
@@ -194,11 +211,11 @@ def runMain(lvl=1, score=0):
     run = bool(1)
 
     while run:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+        for event in pg.event.get():
+            if event.type == pg.QUIT:
                 run = False
 
-            if event.type == pygame.VIDEORESIZE:
+            if event.type == pg.VIDEORESIZE:
                 current_w, current_h = event.size
                 coin_xFinish = int(current_w - 10)
                 coin_yBegin = int(top_panel_h + 10)
@@ -214,29 +231,29 @@ def runMain(lvl=1, score=0):
         if remaining_time <= 5:
             color_time['R'] = 255
 
-        key = pygame.key.get_pressed()
+        key = pg.key.get_pressed()
 
-        if key[pygame.K_a] or key[pygame.K_KP4] or key[pygame.K_LEFT]:
+        if key[pg.K_a] or key[pg.K_KP4] or key[pg.K_LEFT]:
             p.x -= speed_p
 
-        if key[pygame.K_d] or key[pygame.K_KP6] or key[pygame.K_RIGHT]:
+        if key[pg.K_d] or key[pg.K_KP6] or key[pg.K_RIGHT]:
             p.x += speed_p
 
-        if key[pygame.K_w] or key[pygame.K_KP8] or key[pygame.K_UP]:
+        if key[pg.K_w] or key[pg.K_KP8] or key[pg.K_UP]:
             p.y -= speed_p
 
-        if key[pygame.K_s] or key[pygame.K_KP5] or key[pygame.K_DOWN]:
+        if key[pg.K_s] or key[pg.K_KP5] or key[pg.K_DOWN]:
             p.y += speed_p
 
-        if key[pygame.K_SPACE]:
+        if key[pg.K_SPACE]:
             speed_p += 9
-            if key[pygame.K_d] or key[pygame.K_KP6] or key[pygame.K_RIGHT] or key[pygame.K_w] or key[pygame.K_KP8] or key[pygame.K_UP] or key[pygame.K_s] or key[pygame.K_KP5] or key[pygame.K_DOWN]:
+            if key[pg.K_d] or key[pg.K_KP6] or key[pg.K_RIGHT] or key[pg.K_w] or key[pg.K_KP8] or key[pg.K_UP] or key[pg.K_s] or key[pg.K_KP5] or key[pg.K_DOWN]:
                 p_is_turbo = True
 
         else:
             speed_p = 5; p_is_turbo = False
 
-        if key[pygame.K_i]:
+        if key[pg.K_i]:
             instruction.instruction()
 
         p.x = max(0, p.x)
@@ -249,13 +266,14 @@ def runMain(lvl=1, score=0):
             counter = 0
             if coins_types[counter]['geo'][0] < p_help.x:
                 p_help.x -= speed_pHelp
-            if coins_types[counter]['geo'][1] < p_help.y:
+            elif coins_types[counter]['geo'][1] < p_help.y:
                 p_help.y -= speed_pHelp
-            if coins_types[counter]['geo'][0] > p_help.x:
+            elif coins_types[counter]['geo'][0] > p_help.x:
                 p_help.x += speed_pHelp
-            if coins_types[counter]['geo'][1] > p_help.y:
+            elif coins_types[counter]['geo'][1] > p_help.y:
                 p_help.y += speed_pHelp
-                counter += 1
+
+            counter += 1
 
             for i in coins_types:
                 if p_help.collidepoint(i['geo']):
@@ -266,6 +284,8 @@ def runMain(lvl=1, score=0):
                     else:
                         score += i['plus']; score -= i['minus']
 
+        counter = 0
+
         for i in coins_types:
             if p.collidepoint(i['geo']):
                 i['geo'] = (random.randint(coin_xBegin, coin_xFinish), random.randint(coin_yBegin, coin_yFinish));
@@ -273,7 +293,6 @@ def runMain(lvl=1, score=0):
 
                 if i['minus'] == -1:
                     end(font, score, color_time, "Ты подорвался на мине!")
-
                 else:
                     score += i['plus']; score -= i['minus']
 
@@ -309,7 +328,6 @@ def runMain(lvl=1, score=0):
             standart_speed_p += 5
             last_score = score
 
-        drive_e = standart_speed_p / 3
 
         if score < 0:
             run = False
@@ -325,34 +343,49 @@ def runMain(lvl=1, score=0):
         if p.collidepoint(eggm.x, eggm.y) and p_is_turbo: level_up(lvl, score); score += 3
 
 
-        if p.collidepoint(time_retarder.rect.x, time_retarder.rect.y):
+        if pg.sprite.spritecollide(time_retarder, hide_sprites, False):
+            sprites.remove(time_retarder)
+            time_retarder = objMiniTime()
+            sprites.add(time_retarder)
             time_is_retach = True
+            start_time2 = int(time.time())
 
         if time_is_retach:
-            drive_e -= 0.4
+            drive_e += MINUS_DRIVE_EGGM
+            drive_e = min(0.6, drive_e)
+        else: 
+            drive_e = standart_speed_p / 2.3
+
+        difference2 = None
 
         screen.fill((255, 255, 71))
+
+        if start_time2 != None:
+            difference2 = int(time.time()) - start_time2
+            screen.blit(font.render(f"До обычного течения времени осталось: {difference2}", True, (0, 0, 0)), (0, screen.get_height() * 30 // 100))
+
 
         current_time_ms = time.time_ns() // 1_000_000
 
         turbo_lst = [el for el in turbo_lst if current_time_ms - el[0] <= 300]
 
         if p_is_turbo:
-            turbo_lst.append((current_time_ms, pygame.rect.Rect(p.x, p.y, 45, 25)))
+            turbo_lst.append((current_time_ms, pg.rect.Rect(p.x, p.y, 45, 25)))
 
         for item in turbo_lst:
-            pygame.draw.rect(screen, (0, 140, 240), item[1])
+            pg.draw.rect(screen, (0, 140, 240), item[1])
 
-        pygame.draw.rect(screen, (0, 255, 0), p)
-        pygame.draw.rect(screen, (255, 0, 0), eggm)
+        PlayerHide.update(player_hide, p.x, p.y)
+        pg.draw.rect(screen, (0, 255, 0), p)
+        pg.draw.rect(screen, (255, 0, 0), eggm)
         sprites.draw(screen)
 
 
         if have_hak and alive_p_help:
-            pygame.draw.rect(screen, (0, 255, 0), p_help)
+            pg.draw.rect(screen, (0, 255, 0), p_help)
 
         for i in coins_types:
-            pygame.draw.circle(screen, i['color'], i['geo'], i['size'])
+            pg.draw.circle(screen, i['color'], i['geo'], i['size'])
 
         PADDING_LEFT_RIGHT = current_w * 2 / 100
 
@@ -370,7 +403,7 @@ def runMain(lvl=1, score=0):
         text_width = text_score.get_width()
         screen.blit(text_score, (current_w - text_width - PADDING_LEFT_RIGHT, 20))
 
-        mini_font = pygame.font.Font(None, 25)
+        mini_font = pg.font.Font(None, 25)
         text_instruction1 = mini_font.render(f"Что бы увидеть инструкцию,", True, (0, 0, 0))
         text_instruction2 = mini_font.render(f"            нажми i.", True, (0, 0, 0))
         screen.blit(text_instruction1, (screen.get_width() / 2 - 95, screen.get_height() - 40))
@@ -379,7 +412,7 @@ def runMain(lvl=1, score=0):
         if remaining_time <= 0:
             end(font, score, color_time)
 
-        pygame.display.flip()
+        pg.display.flip()
         clock.tick(60)
 
 
