@@ -1,9 +1,15 @@
+# Square And Coins
+# Версия 2.0
+
+
 import pygame as pg
 
+from multiprocessing import Pool
 import random, time, os
 import tkinter as tk
 
 import instruction
+import load_scale_image as lsi
 
 try:
     import hak
@@ -24,8 +30,11 @@ def resolution():
 
 def topPanelHeight():
     testFont = pg.font.Font(size=50)
-    text = testFont.render(f"Test", True, (255, 255, 255))
-    return text.get_height()
+    text0 = testFont.render(f"Test", True, (0, 0, 0))
+    text1 = testFont.render(f"Test", True, (0, 0, 0))
+    text2 = testFont.render(f"Test", True, (0, 0, 0))
+    text3 = testFont.render(f"Test", True, (0, 0, 0))
+    return text0.get_height() + text1.get_height() + text2.get_height() + text3.get_height()
 
 
 screen_w = 80
@@ -36,7 +45,7 @@ current_h = MON_H * screen_y / 100
 font = pg.font.Font(size=50)
 clock = pg.time.Clock()
 
-top_panel_h = topPanelHeight() + 20
+top_panel_h = topPanelHeight() + 15
 
 screen = pg.display.set_mode((current_w, current_h), pg.RESIZABLE)
 
@@ -56,7 +65,7 @@ class objMiniTime(pg.sprite.Sprite):
         self.image.set_colorkey((0, 0, 0))
         self.rect = self.image.get_rect()
         self.rect.x = random.randint(50, screen.get_width() - 50)
-        self.rect.y = random.randint(50, screen.get_height() - 50)
+        self.rect.y = random.randint(top_panel_h, screen.get_height() - 50)
 
         self.type = "objMiniTime"
 
@@ -69,6 +78,75 @@ class PlayerHide(pg.sprite.Sprite):
     def update(self, player_x, player_y):
         self.rect.x = player_x
         self.rect.y = player_y
+
+class Hp(pg.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
+        self.image = pg.image.load(os.path.join("Images", "hp.png"))
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+
+class Cristall(pg.sprite.Sprite): 
+    def __init__(self, x = 0, y = 0):
+        super().__init__()
+
+        self.images = []
+        self.image = None
+        self.next_image = 0
+        self.next_image_reverse = False
+
+        for i in range(1, 40):
+            filename = f"{i:02d}.jpg"
+            image = lsi.load_scaled_image(pg, os.path.join("Videos/Cristall", filename), 50, 75)
+            for i in range(5):
+                self.images.append(image)
+
+        self.image = self.images[self.next_image]
+        self.image.convert_alpha()
+        self.image.set_colorkey((0, 0, 0))
+        self.rect = self.image.get_rect()
+        self.x = x
+        self.y = y
+        self.rect.x = self.x
+        self.rect.y = self.y
+
+    def update(self):
+        try:
+            self.image = self.images[self.next_image]
+            self.image.convert_alpha()
+            self.image.set_colorkey((0, 0, 0))
+            self.rect = self.image.get_rect()
+            self.rect.x = self.x
+            self.rect.y = self.y
+        except IndexError:
+            if not self.next_image_reverse:
+                self.next_image_reverse = True
+                self.next_image = len(self.images) - 2
+            else:
+                self.next_image_reverse = False
+                self.next_image = 1
+        else: 
+            if not self.next_image_reverse: 
+                self.next_image += 1
+            else: 
+                self.next_image -= 1
+    
+    def move(self, pl_x = 0, pl_y = 0, min_x = 0, min_y = 0):
+        self.rect.x += pl_x
+        self.rect.x -= min_x
+        self.rect.y += pl_y
+        self.rect.y -= min_y
+
+class Eggman(pg.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.image = pg.image.load(os.path.join("Images", "eggm.png"))
+        self.rect = self.image.get_rect()
+    
+    def move(self, new_x, new_y):
+        self.rect.x = new_x
+        self.rect.y = new_y
 
 def level_up(curr_level, score):
     runMain(curr_level + 1, score + 3)
@@ -149,18 +227,34 @@ def runMain(lvl=1, score=0):
 
     sprites = pg.sprite.Group()
     hide_sprites = pg.sprite.Group()
+    hpes = pg.sprite.Group()
+    cristalles = pg.sprite.Group()
+
+    COLOR_FILL_START = (255, 255, 71)
+    color_fill = COLOR_FILL_START
 
     r = resolution()
     P_SIZE = 40
     p = pg.Rect(180, 180, P_SIZE, P_SIZE)
+    p_isCollideEnemy = False
     standart_speed_p = 5
     speed_p = 5
     turbo_speed = 9
     p_is_turbo = False
     turbo_lst = []
+    player_hide = PlayerHide()
+    hide_sprites.add(player_hide)
+    player_isCollide_cristalles = False
+    hp1 = Hp(screen.get_width() * 5 // 100, screen.get_height() * 8 // 100); 
+    hp2 = Hp(screen.get_width() * 10 // 100, screen.get_height() * 8 // 100); 
+    hp3 = Hp(screen.get_width() * 15 // 100, screen.get_height() * 8 // 100)
+    hpes.add(hp1, hp2, hp3)
 
     E_SIZE = 40
     eggm = pg.rect.Rect(400, 400, E_SIZE, E_SIZE)
+    eggman = Eggman()
+    eggman.move(eggm.x, eggm.y)
+    sprites.add(eggman)
     drive_e = standart_speed_p / 2.3
     MINUS_DRIVE_EGGM = 2
 
@@ -172,12 +266,11 @@ def runMain(lvl=1, score=0):
 
     time_retarder = objMiniTime()
     sprites.add(time_retarder)
-
-    player_hide = PlayerHide()
-    hide_sprites.add(player_hide)
-
     time_is_retach = bool(False)
 
+    cristall = Cristall(random.randint(40, screen.get_width() - 40), random.randint(top_panel_h, screen.get_height() - 40))
+    cristalles.add(cristall)
+    
     if have_hak:
         p_help = pg.rect.Rect(current_w, current_h, P_SIZE, P_SIZE)
         alive_p_help = True
@@ -200,7 +293,16 @@ def runMain(lvl=1, score=0):
 
     last_score = score
     start_time = int(time.time())
+
     start_time2 = None
+    start_time3 = None
+
+    timer_stay_time_start = 8
+    timer_stay_time = None
+    timer_stay_time_start2 = 0.2
+    timer_stay_time2 = None
+
+
     counter = 0
 
     remaining_time = 120
@@ -306,6 +408,8 @@ def runMain(lvl=1, score=0):
         else:
             eggm.y -= drive_e
 
+        eggman.move(eggm.x - 40, eggm.y - 40)
+
         if have_hak:
             if p_help.x < eggm.x:
                 p_help.x += speed_pHelp
@@ -334,21 +438,44 @@ def runMain(lvl=1, score=0):
             end(font, score, color_time)
 
         if p.colliderect(eggm) and p_is_turbo == bool(False):
-            end(font, score, color_time)
+            if p_isCollideEnemy == True: pass
+            else:
+                p_isCollideEnemy = True
+                if len(hpes) == 1: 
+                    end(font, score, color_time)
+                else: 
+                    hpes.remove(hpes.sprites()[-1])
+                    color_fill = (255, 0, 0)
+                    start_time3 = time.time()
+        else: p_isCollideEnemy = False
 
-        elif have_hak: 
+        if start_time3 is not None:
+            difference3 = time.time() - start_time3
+            timer_stay_time2 = timer_stay_time_start2 - difference3
+            if timer_stay_time2 <= 0:
+                color_fill = COLOR_FILL_START
+
+        if have_hak: 
             if p_help.colliderect(eggm):
                 alive_p_help = False
 
         if p.collidepoint(eggm.x, eggm.y) and p_is_turbo: level_up(lvl, score); score += 3
 
-
-        if pg.sprite.spritecollide(time_retarder, hide_sprites, False):
+        if time_retarder is not None and pg.sprite.spritecollide(time_retarder, hide_sprites, False):
             sprites.remove(time_retarder)
-            time_retarder = objMiniTime()
-            sprites.add(time_retarder)
+            time_retarder = None
             time_is_retach = True
             start_time2 = int(time.time())
+
+        if pg.sprite.spritecollide(player_hide, cristalles, False):
+            cristalles.remove(cristall)
+            cristall = Cristall(random.randint(40, screen.get_width() - 40), random.randint(top_panel_h, screen.get_height() - 40)) 
+            cristalles.add(cristall)
+            if player_isCollide_cristalles == False:
+                hpes.add(Hp(screen.get_width() * (hpes.sprites()[-1].rect.x * 100 // screen.get_width() + 5) // 100, 
+                            screen.get_height() * 8 // 100))
+                player_isCollide_cristalles = True
+        else: player_isCollide_cristalles = False
 
         if time_is_retach:
             drive_e += MINUS_DRIVE_EGGM
@@ -358,11 +485,19 @@ def runMain(lvl=1, score=0):
 
         difference2 = None
 
-        screen.fill((255, 255, 71))
+        screen.fill(color_fill)
 
         if start_time2 != None:
             difference2 = int(time.time()) - start_time2
-            screen.blit(font.render(f"До обычного течения времени осталось: {difference2}", True, (0, 0, 0)), (0, screen.get_height() * 30 // 100))
+            timer_stay_time = timer_stay_time_start - difference2
+            screen.blit(font.render(f"До обычного течения времени осталось: {timer_stay_time}", True, (0, 0, 0)), (0, screen.get_height() * 15 // 100))
+
+        if timer_stay_time is not None and timer_stay_time <= 0:
+            time_retarder = objMiniTime()
+            sprites.add(time_retarder)
+            time_is_retach = False
+            start_time2 = None
+            timer_stay_time = None
 
 
         current_time_ms = time.time_ns() // 1_000_000
@@ -376,9 +511,13 @@ def runMain(lvl=1, score=0):
             pg.draw.rect(screen, (0, 140, 240), item[1])
 
         PlayerHide.update(player_hide, p.x, p.y)
+        Cristall.update(cristall)
+
         pg.draw.rect(screen, (0, 255, 0), p)
         pg.draw.rect(screen, (255, 0, 0), eggm)
         sprites.draw(screen)
+        hpes.draw(screen)
+        cristalles.draw(screen)
 
 
         if have_hak and alive_p_help:
