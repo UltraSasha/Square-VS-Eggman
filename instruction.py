@@ -51,7 +51,57 @@ INST = """                  Инструкция к игре «Squares And Coins
         после завершения игры"""
 
 
+def set_btt_sound():
+    global butt_sound
+    if butt_sound["text"] == "🔊":
+        butt_sound["text"] = "🔇"
+    else:
+        butt_sound["text"] = "🔊"
 
+def close():
+    global butt_sound, name
+    
+    close.result = {
+        'name': name.get(),
+        'sound': "🔊" if butt_sound["text"] == "🔊" else "🔊"
+    }
 
-def instruction():
-    pass
+    root.destroy()
+    root.quit()
+
+def instruction(global_name, global_sound):
+    global root, butt_sound, name
+
+    root = Tk()
+    root.protocol("WM_DELETE_WINDOW", close)
+    root.geometry("600x565")
+    root.title("Инструкция и настройки")    
+
+    app = Frame(root)
+    app.grid()
+
+    instruction_text = Text(app)
+    instruction_text.insert(0.0, INST)
+    instruction_text.grid(column=0, row=0, columnspan=2, rowspan=2)
+
+    Label(app, text="                                                                                     Настройки").grid(column=0, sticky="w")
+    Label(app, text="\nВаше имя: ").grid(sticky="w")
+
+    name = Entry(app)
+    name.grid(sticky="w")
+
+  #  Button(app, text="Зарегестрироваться").grid(sticky="w")
+
+    Label(app, text="\nЗвук: ").grid(sticky="w")
+    butt_sound = Button(app, text="🔊", command=set_btt_sound)
+    butt_sound.grid(sticky="w")
+
+    Button(app, text="Сохранить и выйти               ", command=close).grid(sticky=E, column = 1, row = 3)
+
+    root.mainloop()
+
+    if hasattr(close, 'result'):
+        global_name = close.result['name']
+        global_sound = close.result['sound']
+ 
+    return global_name, global_sound

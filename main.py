@@ -18,21 +18,25 @@ except:
 
 pg.init()
 
-def load_best():
+def load_bests() -> dict:
     try:
-        with open("best.json", "r") as file:
+        with open("bests.json", "r") as file:
             return json.load(file)
-    except: return 0
+    except: return {}
 
-def save_best(best_score: int):
+def save_bests(bests_scores: dict) -> None:
     try:
-        with open("best.json", 'r') as file:
+        with open("bests.json", 'r') as file:
             data = json.load(file)
     except:
-        with open("best.json", 'w') as file:
-            json.dump(best_score, file)
+        with open("bests.json", 'w') as file:
+            json.dump(bests_scores, file)
     else:
-        if data >= best_score: return
+        if data >= bests_scores: 
+            return
+        else:
+            with open("bests.json", 'w') as file:
+                json.dump(bests_scores, file)
 
 def resolution():
     root = tk.Tk()
@@ -50,6 +54,9 @@ def topPanelHeight():
     text3 = testFont.render(f"Test", True, (0, 0, 0))
     return text0.get_height() + text1.get_height() + text2.get_height() + text3.get_height()
 
+
+global_name = "Steve"
+global_sound = "🔊"
 
 screen_w = 80
 screen_y = 80
@@ -199,8 +206,8 @@ def level_up(curr_level, score):
     runMain(curr_level + 1, score + 3)
 
 def end(font, score, color_time, text="Игра завершена!"):
-    if score >= load_best():
-        save_best(score)
+    if score >= load_bests():
+        save_bests(score)
 
     screen.fill((255, 255, 71))
     text_over1 = font.render(text + f" Очки: {score}.", True,
@@ -208,8 +215,25 @@ def end(font, score, color_time, text="Игра завершена!"):
     text_over2 = font.render(f"Что бы играть по новой, тыкни по пробелу.", True,
                              (color_time['R'], color_time['G'], color_time['B']))
 
-    text_over3 = font.render(f"Твой рекорд: {load_best()}", True, (color_time['R'], color_time['G'], color_time['B']))
+    text_over3 = font.render(f"Твой рекорд: {load_bests()}", True, 
+                             (color_time['R'], color_time['G'], color_time['B']))
+    
+    
 
+    text_overs5 = []
+    for i in load_bests():
+        text_overs5.append(i)
+    text_overs6 = []
+    for i in text_overs5:
+        text_overs6.append(font.render(f"{i}: {load_bests()[i]}", 
+                                       True, (0, 0, 0)))
+
+    for i in text_overs6:
+        screen.blit(i, (current_w , current_h * 65 // 100))
+
+    text_over4 = font.render(f"Другие рекорды: ", True, 
+                             (color_time['R'], color_time['G'], color_time['B']))
+    screen.blit(text_over4, (current_w * 75 // 100, current_h * 10 // 100))
     screen.blit(text_over1, (screen.get_width() // 2 - text_over1.get_width() // 2,
                                   screen.get_height() // 2 - text_over1.get_height() // 2))
     screen.blit(text_over2, (screen.get_width() // 2 - text_over1.get_width() // 2,
@@ -233,7 +257,9 @@ def end(font, score, color_time, text="Игра завершена!"):
             runMain()
 
 def start(contn_group: pg.sprite.Group):
-    global screen
+    global screen, global_name, global_sound
+    
+    
     screen = pg.display.set_mode((current_w, current_h))
 
     contn_group.add(ButtonSprite(pg.image.load(os.path.join("Images", "Instruct_Button.jpg")), (255, 255, 255), 
@@ -267,7 +293,7 @@ def start(contn_group: pg.sprite.Group):
                 screen = pg.display.set_mode((current_w, current_h), pg.RESIZABLE)
                 return
             if result_update_contn == "pressed2":
-                instruction.instruction()
+                global_name, global_sound = instruction.instruction(global_name, global_sound)
 
         contn_group.draw(screen)            
 
@@ -439,7 +465,7 @@ def runMain(lvl=1, score=0):
                 speed_p = 5; p_is_turbo = False
 
             if key[pg.K_i]:
-                instruction.instruction()
+                global_name, global_sound = instruction.instruction(global_name, global_sound)
 
             if key[pg.K_ESCAPE]:
                 pause = True
@@ -628,9 +654,12 @@ def runMain(lvl=1, score=0):
             text_width = text_score.get_width()
             screen.blit(text_score, (current_w - text_width - PADDING_LEFT_RIGHT, 20))
 
-            text_best = font.render(f"Рекорд: {load_best()}", True, (0, 0, 0))
+            for i in load_bests():
+                if i == global_name:
+                    best = load_bests()[i]
+
+            text_best = font.render(f"Твой рекорд: {best}", True, (0, 0, 0))
             text_bestW = text_best.get_width()
-            text_bestH = text_best.get_height()
             screen.blit(text_best, (current_w - text_bestW - 8, 
                                     text_score.get_height() + 28))
 
