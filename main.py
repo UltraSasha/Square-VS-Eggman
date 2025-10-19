@@ -4,7 +4,7 @@
 
 import pygame as pg
 
-import random, time, os, json
+import random, time, os, json, sys
 import tkinter as tk
 
 import instruction
@@ -17,6 +17,11 @@ except:
     have_hak = False
 
 pg.init()
+pg.mixer.init()
+
+
+sys.setrecursionlimit(10_000_000)
+
 
 def load_bests() -> dict:
     try:
@@ -32,11 +37,15 @@ def save_bests(bests_scores: dict) -> None:
         with open("bests.json", 'w') as file:
             json.dump(bests_scores, file)
     else:
-        if data >= bests_scores: 
-            return
-        else:
+        try:
+            if data[current_name] >= bests_scores[current_name]: 
+                return
+            else:
+                with open("bests.json", 'w') as file:
+                    json.dump(bests_scores, file)
+        except:
             with open("bests.json", 'w') as file:
-                json.dump(bests_scores, file)
+                    json.dump(bests_scores, file)
 
 def resolution():
     root = tk.Tk()
@@ -55,8 +64,8 @@ def topPanelHeight():
     return text0.get_height() + text1.get_height() + text2.get_height() + text3.get_height()
 
 
-global_name = "Steve"
-global_sound = "🔊"
+current_name = "Steve"
+current_sound = "🔊"
 
 screen_w = 80
 screen_y = 80
@@ -64,6 +73,8 @@ MON_W, MON_H = resolution()
 current_w = MON_W * screen_w / 100
 current_h = MON_H * screen_y / 100
 font = pg.font.Font(size=50)
+pg.mixer.music.load(os.path.join("Music", "music.mp3"))
+pg.mixer.music.set_volume(100)
 clock = pg.time.Clock()
 
 top_panel_h = topPanelHeight() + 15
@@ -85,8 +96,12 @@ class ButtonSprite(pg.sprite.Sprite):
         super().__init__()
         self.image = img
         self.alphacolor = alphacolor
-        self.image.convert_alpha()
-        self.image.set_colorkey(self.alphacolor)
+        if alphacolor == ("is png",):
+            pass
+        else:
+            self.image.convert_alpha()
+            self.image.set_colorkey(self.alphacolor)
+
         self.rect = self.image.get_rect(); self.rect.x = x; self.rect.y = y
         self.in_sprite = in_sprite; self.press_on_sprite = press_on_sprite
 
@@ -98,17 +113,23 @@ class ButtonSprite(pg.sprite.Sprite):
             r, g, b, a = self.image.get_at((xs, ys))
 
             if self.in_sprite is not None:
-                if (r, g, b) == self.alphacolor:
-                    pass
+                if self.alphacolor == ("is png"):
+                    if a == 0:
+                        return  self.in_sprite()
                 else:
-                    return self.in_sprite
+                    if (r, g, b) == self.alphacolor:
+                        pass
+                    else:
+                        return self.in_sprite
             
             if self.press_on_sprite is not None:
-                if (r, g, b) == self.alphacolor:
-                    pass
-
-                elif pg.mouse.get_pressed()[0]:
+                if a == 0 and pg.mouse.get_pressed()[0]:
                     return self.press_on_sprite
+                else:
+                    if (r, g, b) == self.alphacolor:
+                        pass
+                    elif pg.mouse.get_pressed()[0]:
+                        return self.press_on_sprite
 
 
 class objMiniTime(pg.sprite.Sprite):
@@ -205,41 +226,53 @@ class Eggman(pg.sprite.Sprite):
 def level_up(curr_level, score):
     runMain(curr_level + 1, score + 3)
 
-def end(font, score, color_time, text="Игра завершена!"):
-    if score >= load_bests():
-        save_bests(score)
+def end(current_name, font, score, color_time, text="Игра завершена!"):
+    if current_sound == "🔊":
+        pg.mixer.music.fadeout(3000)
 
-    screen.fill((255, 255, 71))
+    try:
+        if score >= load_bests()[current_name]:
+            new_bests = load_bests()
+            new_bests[current_name] = score
+            save_bests(new_bests)
+    except:
+        save_bests({current_name: score})
+
+    screen.fill((0, 128, 0))
     text_over1 = font.render(text + f" Очки: {score}.", True,
                              (color_time['R'], color_time['G'], color_time['B']))
     text_over2 = font.render(f"Что бы играть по новой, тыкни по пробелу.", True,
                              (color_time['R'], color_time['G'], color_time['B']))
 
-    text_over3 = font.render(f"Твой рекорд: {load_bests()}", True, 
+    text_over3 = font.render(f"Твой рекорд: {load_bests()[current_name]}", True, 
                              (color_time['R'], color_time['G'], color_time['B']))
     
+    text_over4 = font.render(f"Другие рекорды: ", True, 
+                            (color_time['R'], color_time['G'], color_time['B']))
     
-
     text_overs5 = []
     for i in load_bests():
-        text_overs5.append(i)
-    text_overs6 = []
-    for i in text_overs5:
-        text_overs6.append(font.render(f"{i}: {load_bests()[i]}", 
-                                       True, (0, 0, 0)))
+        text_overs5.append(font.render(f"{i}: {load_bests()[i]}", 
+                           True, (0, 0, 0)))
+    
+    text_overs6 = {text_overs5[0]: (375, current_h * 68 // 100)}
+    for i in text_overs5[1:]:
+        try:
+            test = text_overs6[next(iter(text_overs6))]
+            text_overs6[i] = (current_w * int(text_overs6[next(iter(text_overs6))][0]) // 100 + i.get_width() + 20, current_h * 64 // 100)
+        except StopIteration:
+            pass
 
     for i in text_overs6:
-        screen.blit(i, (current_w , current_h * 65 // 100))
+        screen.blit(i, (text_overs6[i][0], text_overs6[i][1]))
 
-    text_over4 = font.render(f"Другие рекорды: ", True, 
-                             (color_time['R'], color_time['G'], color_time['B']))
-    screen.blit(text_over4, (current_w * 75 // 100, current_h * 10 // 100))
+    screen.blit(text_over4, (current_w * 4 // 100, current_h * 68 // 100))
     screen.blit(text_over1, (screen.get_width() // 2 - text_over1.get_width() // 2,
                                   screen.get_height() // 2 - text_over1.get_height() // 2))
     screen.blit(text_over2, (screen.get_width() // 2 - text_over1.get_width() // 2,
                                   screen.get_height() // 2 - text_over1.get_height() // 2 + text_over1.get_height() + 10))
     screen.blit(text_over3, (screen.get_width() // 2 - text_over1.get_width() // 2,
-                                  screen.get_height() // 2 - text_over1.get_height() // 2 + text_over1.get_height() + text_over2.get_height() + 20))
+                             screen.get_height() // 2 - text_over1.get_height() // 2 + text_over1.get_height() + text_over2.get_height() + 20))
 
     pg.display.flip()
     expectation = bool(True)
@@ -257,9 +290,8 @@ def end(font, score, color_time, text="Игра завершена!"):
             runMain()
 
 def start(contn_group: pg.sprite.Group):
-    global screen, global_name, global_sound
-    
-    
+    global screen, current_name, current_sound
+
     screen = pg.display.set_mode((current_w, current_h))
 
     contn_group.add(ButtonSprite(pg.image.load(os.path.join("Images", "Instruct_Button.jpg")), (255, 255, 255), 
@@ -274,7 +306,7 @@ def start(contn_group: pg.sprite.Group):
                 pg.quit()
                 raise Exit("The user has logged out of the program.")
 
-        screen.fill((255, 255, 71))
+        screen.fill((0, 128, 0))
 
         big_font = pg.font.Font(size=75)
         text_welcome = big_font.render("Squares And Coins", True, (0, 0, 0))
@@ -293,7 +325,7 @@ def start(contn_group: pg.sprite.Group):
                 screen = pg.display.set_mode((current_w, current_h), pg.RESIZABLE)
                 return
             if result_update_contn == "pressed2":
-                global_name, global_sound = instruction.instruction(global_name, global_sound)
+                current_name, current_sound = instruction.instruction(current_name, current_sound)
 
         contn_group.draw(screen)            
 
@@ -302,15 +334,19 @@ def start(contn_group: pg.sprite.Group):
 
 
 def runMain(lvl=1, score=0):
-    global screen, current_w, current_h
+    global current_name, current_sound, screen, current_w, current_h
 
+    if current_sound == "🔊":
+        pg.mixer.music.play(-1)
+    else:
+        pg.mixer.music.stop()
     sprites = pg.sprite.Group()
     hide_sprites = pg.sprite.Group()
     hpes = pg.sprite.Group()
     cristalles = pg.sprite.Group()
     contn_group = pg.sprite.Group()
 
-    COLOR_FILL_START = (255, 255, 71)
+    COLOR_FILL_START = (0, 128, 0)
     color_fill = COLOR_FILL_START
 
     PRESSED = "pressed"
@@ -355,8 +391,8 @@ def runMain(lvl=1, score=0):
     
     text_welcome = pg.font.Font(size=75).render("Squares And Coins", True, (0, 0, 0))
 
-    contn = ButtonSprite(pg.image.load(os.path.join("Images", "Play_Button.jpg")), 
-                            (255, 255, 255), 
+    contn = ButtonSprite(pg.image.load(os.path.join("Images", "Play_Button.png")),
+                            ("is png",),
                             current_w // 2 - 250 / 2, 
                             current_h // 2 + text_welcome.get_height() + current_h * 0.1 // 100, None, PRESSED)
     contn_group.add(contn)
@@ -371,7 +407,7 @@ def runMain(lvl=1, score=0):
                    {'geo': (random.randint(coin_xBegin, coin_xFinish), random.randint(coin_yBegin, coin_yFinish)),
                         'color': (127, 255, 0), 'plus': 1, 'minus': 0, 'size': random.randint(10, 20)},
                    {'geo': (random.randint(coin_xBegin, coin_xFinish), random.randint(coin_yBegin, coin_yFinish)),
-                        'color': (255, 255, 71), 'plus': 0, 'minus': -1, 'size': random.randint(10, 15)},
+                        'color': (0, 118, 0), 'plus': 0, 'minus': -1, 'size': random.randint(10, 15)},
                    {'geo': (random.randint(coin_xBegin, coin_xFinish), random.randint(coin_yBegin, coin_yFinish)),
                         'color': (0, 131, 110), 'plus': 2, 'minus': 0, 'size': random.randint(10, 20)},
                    {'geo': (random.randint(coin_xBegin, coin_xFinish), random.randint(coin_yBegin, coin_yFinish)),
@@ -422,10 +458,15 @@ def runMain(lvl=1, score=0):
 
 
         if pause:
-            screen.fill((255, 255, 71))
+            if current_sound == "🔊":
+                pg.mixer.music.fadeout(3000)
+
+            screen.fill((0, 128, 0))
 
             result_update_contn = contn.update()
             if result_update_contn == PRESSED:
+                if current_sound == "🔊":
+                    pg.mixer.music.play(-1)
                 pause = False
             
             screen.blit(text_pause, (current_w // 2 - text_pause.get_width() // 2, 
@@ -465,7 +506,7 @@ def runMain(lvl=1, score=0):
                 speed_p = 5; p_is_turbo = False
 
             if key[pg.K_i]:
-                global_name, global_sound = instruction.instruction(global_name, global_sound)
+                current_name, current_sound = instruction.instruction(current_name, current_sound)
 
             if key[pg.K_ESCAPE]:
                 pause = True
@@ -502,22 +543,23 @@ def runMain(lvl=1, score=0):
 
             for i in coins_types:
                 if p.collidepoint(i['geo']):
+                    pg.mixer.Sound(os.path.join("Sounds", "plus_money.mp3")).play()
                     i['geo'] = (random.randint(coin_xBegin, coin_xFinish), random.randint(coin_yBegin, coin_yFinish));
                     i['size'] = random.randint(10, 30)
 
                     if i['minus'] == -1:
-                        end(font, score, color_time, "Ты подорвался на мине!")
+                        end(current_name, font, score, color_time, "Ты подорвался на мине!")
                     else:
                         score += i['plus']; score -= i['minus']
 
             if eggm.x < p.x:
                 eggm.x += drive_e
-            else:
+            elif eggm.x > p.x:
                 eggm.x -= drive_e
 
             if eggm.y < p.y:
                 eggm.y += drive_e
-            else:
+            elif eggm.y > p.y:
                 eggm.y -= drive_e
 
             eggman.move(eggm.x - 40, eggm.y - 40)
@@ -547,14 +589,14 @@ def runMain(lvl=1, score=0):
 
             if score < 0:
                 run = False
-                end(font, score, color_time)
+                end(current_name, font, score, color_time)
 
             if p.colliderect(eggm) and p_is_turbo == bool(False):
                 if p_isCollideEnemy == True: pass
                 else:
                     p_isCollideEnemy = True
                     if len(hpes) == 1: 
-                        end(font, score, color_time)
+                        end(current_name, font, score, color_time)
                     else: 
                         hpes.remove(hpes.sprites()[-1])
                         color_fill = (255, 0, 0)
@@ -655,13 +697,20 @@ def runMain(lvl=1, score=0):
             screen.blit(text_score, (current_w - text_width - PADDING_LEFT_RIGHT, 20))
 
             for i in load_bests():
-                if i == global_name:
+                if i == current_name:
                     best = load_bests()[i]
-
-            text_best = font.render(f"Твой рекорд: {best}", True, (0, 0, 0))
-            text_bestW = text_best.get_width()
-            screen.blit(text_best, (current_w - text_bestW - 8, 
-                                    text_score.get_height() + 28))
+            try:
+                text_best = font.render(f"Твой рекорд: {best}", True, (0, 0, 0))                
+            except:
+                text_best = font.render(f"Твой рекорд: {score}", True, (0, 0, 0))            
+            finally:
+                try:
+                    text_best = font.render(f"Твой рекорд: {best}", True, (0, 0, 0))                
+                except:
+                    text_best = font.render(f"Твой рекорд: {score}", True, (0, 0, 0))
+                text_bestW = text_best.get_width()
+                screen.blit(text_best, (current_w - text_bestW - 8, 
+                                        text_score.get_height() + 28))
 
             mini_font = pg.font.Font(None, 25)
             text_instruction1 = mini_font.render(f"Что бы увидеть инструкцию,", True, (0, 0, 0))
@@ -670,15 +719,15 @@ def runMain(lvl=1, score=0):
             screen.blit(text_instruction2, (screen.get_width() / 2 - 100, screen.get_height() - 20))
 
             if remaining_time <= 0:
-                end(font, score, color_time)
+                end(current_name, font, score, color_time)
 
         pg.display.flip()
         clock.tick(60)
 
 
 
-start(pg.sprite.Group(ButtonSprite(pg.image.load(os.path.join("Images", "Play_Button.jpg")), 
-                                  (255, 255, 255), 
+start(pg.sprite.Group(ButtonSprite(pg.image.load(os.path.join("Images", "Play_Button.png")),
+                                  ("is png",),
                                    current_w // 2 - 250 / 2, 
                                    current_h // 2 + pg.font.Font(size=75).render("Squares And Coins", 
                                    True, 

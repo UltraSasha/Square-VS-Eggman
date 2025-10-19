@@ -51,26 +51,24 @@ INST = """                  Инструкция к игре «Squares And Coins
         после завершения игры"""
 
 
-def set_btt_sound():
-    global butt_sound
-    if butt_sound["text"] == "🔊":
-        butt_sound["text"] = "🔇"
-    else:
-        butt_sound["text"] = "🔊"
 
-def close():
-    global butt_sound, name
-    
-    close.result = {
-        'name': name.get(),
-        'sound': "🔊" if butt_sound["text"] == "🔊" else "🔊"
-    }
-
-    root.destroy()
-    root.quit()
-
-def instruction(global_name, global_sound):
+def instruction(current_name, current_sound):
     global root, butt_sound, name
+
+    def close():
+        global butt_sound, name
+        
+        close.result = {
+            'name': name.get(),
+            'sound': "🔊" if butt_sound["text"] == "🔊" else "🔊"
+        }
+
+        root.destroy()
+        root.quit()
+
+    def set_btt_sound():
+        global butt_sound
+        butt_sound["text"] = "🔊" if butt_sound["text"] == "🔇" else "🔇"
 
     root = Tk()
     root.protocol("WM_DELETE_WINDOW", close)
@@ -101,7 +99,7 @@ def instruction(global_name, global_sound):
     root.mainloop()
 
     if hasattr(close, 'result'):
-        global_name = close.result['name']
-        global_sound = close.result['sound']
+        current_name = close.result['name']
+        current_sound = close.result['sound']
  
-    return global_name, global_sound
+    return current_name, current_sound
