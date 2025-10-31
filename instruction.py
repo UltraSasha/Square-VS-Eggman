@@ -53,15 +53,39 @@ INST = """                  Инструкция к игре «Squares And Coins
 
 
 def instruction(current_name, current_sound):
-    global root, butt_sound, name
+    global root, butt_sound, name, sound_volume
 
     def close():
         global butt_sound, name
         
-        close.result = {
-            'name': name.get(),
-            'sound': "🔊" if butt_sound["text"] == "🔊" else "🔊"
-        }
+        if sound_volume.get().__len__() == 1:
+            sound_volume2 = 0.1
+        elif sound_volume.get().__len__() == 0:
+            sound_volume2 = 1.0
+        else: 
+            if sound_volume.get() == "100":
+                sound_volume2 = 1.0
+            else:
+                sound_volume2 = int(sound_volume.get()[:1]) / 10
+
+        if sound_volume2 >= 1.0:
+            sound_volume2 = 1.0
+        elif sound_volume2 <= 0.0:
+            sound_volume2 = 0.0
+
+        try:
+            close.result = {
+                'name': name.get(),
+                'sound': "🔊" if butt_sound["text"] == "🔊" else "🔇",
+                'sound_volume': sound_volume2
+            }
+        except ValueError:
+            close.result = {
+                'name': name.get(),
+                'sound': "🔊" if butt_sound["text"] == "🔊" else "🔇",
+                'sound_volume': 100
+            }
+
 
         root.destroy()
         root.quit()
@@ -72,7 +96,7 @@ def instruction(current_name, current_sound):
 
     root = Tk()
     root.protocol("WM_DELETE_WINDOW", close)
-    root.geometry("600x565")
+    root.geometry("600x570")
     root.title("Инструкция и настройки")    
 
     app = Frame(root)
@@ -94,6 +118,10 @@ def instruction(current_name, current_sound):
     butt_sound = Button(app, text="🔊", command=set_btt_sound)
     butt_sound.grid(sticky="w")
 
+    Label(app, text="Громкость звука:").grid(sticky="w")
+    sound_volume = Entry(app)
+    sound_volume.grid(sticky="w")
+
     Button(app, text="Сохранить и выйти               ", command=close).grid(sticky=E, column = 1, row = 3)
 
     root.mainloop()
@@ -101,5 +129,6 @@ def instruction(current_name, current_sound):
     if hasattr(close, 'result'):
         current_name = close.result['name']
         current_sound = close.result['sound']
+        current_sound_volume = close.result['sound_volume']
  
-    return current_name, current_sound
+    return current_name, current_sound, current_sound_volume
