@@ -107,7 +107,7 @@ def instruction(current_name, current_sound):
     instruction_text.grid(column=0, row=0, columnspan=2, rowspan=2)
 
     Label(app, text="                                                                                     Настройки").grid(column=0, sticky="w")
-    Label(app, text="\nВаше имя: ").grid(sticky="w")
+    Label(app, text="\nВаше имя (на английском языке): ").grid(sticky="w")
 
     name = Entry(app)
     name.grid(sticky="w")

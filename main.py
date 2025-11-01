@@ -1,11 +1,10 @@
 # Square And Coins
-# Версия 2.1
+# Версия 2.8
 
 
 from init import *
 
 import random, time, os, json, sys
-import tkinter as tk
 
 import instruction
 import classes as cls
@@ -16,6 +15,14 @@ try:
     have_hak = True
 except:
     have_hak = False
+
+
+
+
+init()
+
+
+
 
 
 sys.setrecursionlimit(10_000_000)
@@ -56,8 +63,16 @@ MON_W, MON_H = resolution()
 current_w = int(MON_W * screen_w / 100)
 current_h = int(MON_H * screen_y / 100)
 font = pg.font.Font(size=50)
-pg.mixer.music.load(os.path.join("Music", "music.mp3"))
-pg.mixer.music.set_volume(1000)
+try:
+    pg.mixer.music.load(os.path.join("Music", "music.mp3"))
+    pg.mixer.music.set_volume(1000)
+except pg.error:
+    current_sound = False
+try:
+    sound_money = pg.mixer.Sound("Sounds/plus_money.mp3")
+except:
+    current_sound = False
+
 clock = pg.time.Clock()
 
 
@@ -71,85 +86,72 @@ def end(current_name, font: pg.font.Font, score, color_time, text="Игра за
     if current_sound == "🔊":
         pg.mixer.music.fadeout(3000)
 
-    new_bests = load_bests()
-    try:
-        if score >= load_bests()[current_name]:
-            new_bests[current_name] = score
-            save_bests(new_bests)
-    except:
-        save_bests({current_name: score})
-
+    bests = load_bests()
     
+    if current_name not in bests or score > bests[current_name]:
+        bests[current_name] = score
+        save_bests(bests)
+    
+
     text_over1 = font.render(text + f" Очки: {score}.", True,
                              (color_time['R'], color_time['G'], color_time['B']))
     text_over2 = font.render(f"Что бы играть по новой, тыкни по пробелу.", True,
                              (color_time['R'], color_time['G'], color_time['B']))
-
-    text_over3 = font.render(f"Твой рекорд: {load_bests()[current_name]}", True, 
+    text_over3 = font.render(f"Твой рекорд: {bests[current_name]}", True, 
                              (color_time['R'], color_time['G'], color_time['B']))
-    
     text_over4 = font.render(f"Другие рекорды: ", True, 
                             (color_time['R'], color_time['G'], color_time['B']))
     
-    text_over5 = "<никто кроме вас ещё не играл:(>"
-    
+
     current_name = "Steve" if current_name == "" else current_name
-    index_bests = 0
     
+
     butt_down = pg.rect.Rect(float(current_w * 24 // 100), 
                              float(current_h * 74 / 100),
-
                              float(current_w * 20 / 100), 
                              float(current_h * 4 / 100))
 
+
+    see_bests = []
     try:
-        see_bests = new_bests
-    except UnboundLocalError or NameError: 
-        see_bests = None
-
-    try: 
-        see_bests.pop(current_name)
-    except AttributeError: pass
-    except KeyError: pass
+        other_bests = bests.copy()
+        if current_name in other_bests:
+            other_bests.pop(current_name)
+        
+        see_bests = sorted(other_bests.items(), key=lambda x: x[1], reverse=True)
+        
+    except Exception as e:
+        print(f"Ошибка при загрузке рекордов: {e}")
+        see_bests = []
     
-    else: 
-        for i in see_bests:
-            text_over5 = f"{i}: {see_bests[i]}"
-    
-    
-
-    expectation = bool(True)
+    index_bests = 0
+    expectation = True
 
     while expectation:
-        for e in pg.event.get():
-            if e.type == pg.QUIT:
+        for event in pg.event.get():
+            if event.type == pg.QUIT:
                 pg.quit()
                 expectation = False
                 exit()
 
-        key = pg.key.get_pressed()
+            if event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
+                mouse_pos = pg.mouse.get_pos()
+                if butt_down.collidepoint(mouse_pos) and see_bests:
+                    index_bests = (index_bests + 1) % len(see_bests)
 
+        key = pg.key.get_pressed()
         if key[pg.K_SPACE]:
             runMain()
-
-        if pg.rect.Rect(float(pg.mouse.get_pos()[0]), 
-                        float(pg.mouse.get_pos()[1]), 
-                        1, 1).colliderect(butt_down) and pg.mouse.get_pressed()[0] and see_bests:
             
-            try:
-                index_bests += 1
-                text_over5 = f"{list(see_bests.items())[index_bests][0]}: " + list(see_bests.items())[index_bests][1]
-            except IndexError:
-                index_bests = 0
 
-            except TypeError:
-                text_over5 = "<никто кроме вас ещё не играл:(>"
+        if see_bests:
+            text_over5 = f"{see_bests[index_bests][0]}: {see_bests[index_bests][1]}"
+        else:
+            text_over5 = "<никто кроме вас ещё не играл:(>"
 
 
         screen.fill((0, 128, 0))
-        screen.blit(text_over4, (current_w * 4 // 100, current_h * 68 // 100))
-
-        screen.blit(font.render(text_over5, True, (0, 0, 0)), (current_w * 24 // 100, current_h * 68 // 100))
+        
 
         screen.blit(text_over1, (current_w // 2 - text_over1.get_width() // 2,
                                  current_h // 2 - text_over1.get_height() // 2))
@@ -157,14 +159,17 @@ def end(current_name, font: pg.font.Font, score, color_time, text="Игра за
                                  current_h // 2 - text_over1.get_height() // 2 + text_over1.get_height() + 10))
         screen.blit(text_over3, (current_w // 2 - text_over1.get_width() // 2,
                                  current_h // 2 - text_over1.get_height() // 2 + text_over1.get_height() + text_over2.get_height() + 20))
+        
 
+        screen.blit(text_over4, (current_w * 4 // 100, current_h * 68 // 100))
+        screen.blit(font.render(text_over5, True, (0, 0, 0)), 
+                   (current_w * 24 // 100, current_h * 68 // 100))
+        
 
-        pg.draw.rect(screen, (0, 0, 0), butt_down)
-
-        screen.blit(font.render("следующая пара", True, (255, 255, 255)), 
-                (float(current_w * 24 // 100), 
-                 float(current_h * 74 / 100)))
-
+        if see_bests and len(see_bests) > 1:
+            pg.draw.rect(screen, (0, 0, 0), butt_down)
+            screen.blit(font.render("следующая пара", True, (255, 255, 255)), 
+                       (butt_down.x + 5, butt_down.y))
 
         pg.display.flip()
         clock.tick(60)
@@ -180,9 +185,9 @@ def start(contn_group: pg.sprite.Group):
     complexity_index = 0
 
     contn_group.add(cls.ButtonSprite(pg.image.load(os.path.join("Images", "Instruct_Button.jpg")), (255, 255, 255), 
-                                 current_w // 2 - 250 / 2 / 2, 
-                                 current_h - pg.image.load(os.path.join("Images", "Instruct_Button.jpg")).get_height(),
-                                 None, "pressed2"))
+                                     current_w // 2 - 250 / 2 / 2, 
+                                     current_h - pg.image.load(os.path.join("Images", "Instruct_Button.jpg")).get_height(),
+                                     None, "pressed2"))
 
     settbutton = cls.ButtonSprite(pg.transform.scale(pg.image.load(os.path.join("Images", "setting.png")), (80, 80)),
                               ("is png",),
@@ -191,23 +196,18 @@ def start(contn_group: pg.sprite.Group):
                               None, "pressed1")
     buttons.add(settbutton)
 
-    strelki = (cls.ButtonSprite(pg.image.load("Images/strelkaUP.png"),
-                            ("is png",),
-                            current_w // 2 - 250 / 2 / 2 + 30,
-                            current_h -  pg.image.load(os.path.join("Images", "Instruct_Button.jpg")).get_height() - 144,
-                            None, "pressed"),
-
-               cls.ButtonSprite(pg.image.load("Images/strelkaDOWN.png"),
-                            ("is png",),
-                            current_w // 2 - 250 / 2 / 2 + 30,
-                            current_h -  pg.image.load(os.path.join("Images", "Instruct_Button.jpg")).get_height() - 70),
-                            None, "pressed")
+    strelki = (
+                cls.ButtonSprite(pg.image.load("Images/strelkaUP.png"),
+                                ("is png",),
+                                current_w // 2 - 250 / 2 / 2 + 59.5,
+                                current_h -  pg.image.load(os.path.join("Images", "Instruct_Button.jpg")).get_height() - 125,
+                                None, "pressed"),
+              )
 
 
     run = True
     test = False
     test2 = True
-    test3 = True
     while run:
         for event in pg.event.get():
             if event.type == pg.QUIT:
@@ -232,7 +232,8 @@ def start(contn_group: pg.sprite.Group):
             result_update_contn = item.update()
             if result_update_contn == "pressed1":
                 screen = pg.display.set_mode((current_w, current_h), pg.RESIZABLE)
-                return
+                return complexity_index
+            
             if result_update_contn == "pressed2":
                 current_name, current_sound, current_sound_volume = instruction.instruction(current_name, current_sound)
                 pg.mixer.music.set_volume(current_sound_volume)
@@ -243,11 +244,6 @@ def start(contn_group: pg.sprite.Group):
                 test2 = False
         else: test2 = True
         
-        if strelki[1].update() == "pressed":
-            if test3:
-                complexity_index -= 1
-                test3 = False
-        else: test3 = True
 
         if test:
             try:
@@ -259,7 +255,7 @@ def start(contn_group: pg.sprite.Group):
 
         if settbutton.update() == "pressed1":
             buttons.remove(settbutton)
-            buttons.add(strelki[0], strelki[1])
+            buttons.add(strelki[0])
             test = True
 
         contn_group.draw(screen)
@@ -487,13 +483,9 @@ def runMain(lvl=1, score=0):
             for i in coins_types:
                 if p.collidepoint(i['geo']):
                     if current_sound == "🔊":
-                        sound = pg.mixer.Sound(os.path.join("Sounds", "plus_money.mp3"))
                         try:
-                            sound.set_volume(current_sound_volume)
-                        except NameError: sound.set_volume(100)
-
-                        sound.play()
-                        del sound
+                            sound_money.set_volume(current_sound_volume)
+                        except NameError: sound_money.set_volume(100)
 
                     i['geo'] = (random.randint(coin_xBegin, coin_xFinish), random.randint(coin_yBegin, coin_yFinish));
                     i['size'] = random.randint(10, 30)
