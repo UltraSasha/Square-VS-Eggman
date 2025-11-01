@@ -1,5 +1,5 @@
 # Square And Coins
-# Версия 2.8
+# Версия 2.9
 
 
 from init import *
@@ -15,12 +15,6 @@ try:
     have_hak = True
 except:
     have_hak = False
-
-
-
-
-init()
-
 
 
 
@@ -265,6 +259,7 @@ def start(contn_group: pg.sprite.Group):
         clock.tick(60)
 
 
+
 def runMain(lvl=1, score=0):
     global current_name, current_sound, current_sound_volume, screen, current_w, current_h
 
@@ -284,7 +279,7 @@ def runMain(lvl=1, score=0):
 
     PRESSED = "pressed"
 
-    r = resolution()
+
     P_SIZE = 40
     p = pg.Rect(180, 180, P_SIZE, P_SIZE)
     p_isCollideEnemy = False
@@ -296,6 +291,8 @@ def runMain(lvl=1, score=0):
     player_hide = cls.PlayerHide()
     hide_sprites.add(player_hide)
     player_isCollide_cristalles = False
+    p_is_drive_x = False
+    p_is_drive_y = False
     hp1 = cls.Hp(current_w * 5 // 100, current_h * 8 // 100); 
     hp2 = cls.Hp(current_w * 10 // 100, current_h * 8 // 100); 
     hp3 = cls.Hp(current_w * 15 // 100, current_h * 8 // 100)
@@ -421,15 +418,23 @@ def runMain(lvl=1, score=0):
 
             if key[pg.K_a] or key[pg.K_KP4] or key[pg.K_LEFT]:
                 p.x -= speed_p
+                p_is_drive_x = True
+            else: p_is_drive_x = False
 
             if key[pg.K_d] or key[pg.K_KP6] or key[pg.K_RIGHT]:
                 p.x += speed_p
+                p_is_drive_x = True
+            else: p_is_drive_x = False
 
             if key[pg.K_w] or key[pg.K_KP8] or key[pg.K_UP]:
                 p.y -= speed_p
+                p_is_drive_y = True
+            else: p_is_drive_y = False
 
             if key[pg.K_s] or key[pg.K_KP5] or key[pg.K_DOWN]:
                 p.y += speed_p
+                p_is_drive_y = True
+            else: p_is_drive_y = False
 
             if key[pg.K_SPACE]:
                 speed_p += 9
@@ -601,10 +606,46 @@ def runMain(lvl=1, score=0):
             turbo_lst = [el for el in turbo_lst if current_time_ms - el[0] <= 300]
 
             if p_is_turbo:
-                turbo_lst.append((current_time_ms, pg.rect.Rect(p.x, p.y, 45, 25)))
+                turbo_lst.append((current_time_ms, pg.rect.Rect(p.x, p.y, 40, 25)))
 
-            for item in turbo_lst:
-                pg.draw.rect(screen, (0, 140, 240), item[1])
+
+            try:
+                if p_is_drive_x:
+                    pg.draw.polygon(
+                                    screen, (0, 140, 240), ((turbo_lst[0][1].left, 
+                                                            turbo_lst[0][1].top), 
+
+                                                            (turbo_lst[-1][1].right, 
+                                                            turbo_lst[-1][1].top), 
+
+                                                            (turbo_lst[-1][1].right,
+                                                            turbo_lst[-1][1].bottom), 
+
+                                                            (turbo_lst[0][1].left, 
+                                                            turbo_lst[0][1].bottom), 
+
+                                                            (turbo_lst[0][1].left, 
+                                                            turbo_lst[0][1].top))
+                                    )
+                elif p_is_drive_y:
+                    pg.draw.polygon(
+                                    screen, (0, 140, 240), ((turbo_lst[0][1].left, 
+                                                            turbo_lst[0][1].top), 
+
+                                                            (turbo_lst[0][1].right, 
+                                                            turbo_lst[0][1].top), 
+
+                                                            (turbo_lst[-1][1].right,
+                                                            turbo_lst[-1][1].bottom), 
+
+                                                            (turbo_lst[-1][1].left, 
+                                                            turbo_lst[-1][1].bottom), 
+
+                                                            (turbo_lst[0][1].left, 
+                                                            turbo_lst[0][1].top))
+                                   )
+            except IndexError:
+                pass
 
             cls.PlayerHide.update(player_hide, p.x, p.y)
             cls.Cristall.update(cristall)
