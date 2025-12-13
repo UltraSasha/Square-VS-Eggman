@@ -102,8 +102,8 @@ def end(current_name, font: pg.font.Font, score, color_time, text="Игра за
 
     butt_down = pg.rect.Rect(float(current_w * 24 // 100), 
                              float(current_h * 74 / 100),
-                             float(current_w * 20 / 100), 
-                             float(current_h * 4 / 100))
+                             font.render("следующая пара", True, (255, 255, 255)).get_width() + 15, 
+                             font.render("следующая пара", True, (255, 255, 255)).get_height())
 
 
     see_bests = []
@@ -157,7 +157,7 @@ def end(current_name, font: pg.font.Font, score, color_time, text="Игра за
 
         screen.blit(text_over4, (current_w * 4 // 100, current_h * 68 // 100))
         screen.blit(font.render(text_over5, True, (0, 0, 0)), 
-                   (current_w * 24 // 100, current_h * 68 // 100))
+                   (text_over4.get_rect().right + 50, current_h * 68 // 100))
         
 
         if see_bests and len(see_bests) > 1:
