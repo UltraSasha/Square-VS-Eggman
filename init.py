@@ -4,6 +4,14 @@
 
 import pygame as pg
 import tkinter as tk
+import json
+
+try:
+    import hak
+    have_hak = True
+except:
+    have_hak = False
+
 import os
 
 
@@ -33,6 +41,15 @@ def topPanelHeight():
 
 
 
+def load() -> dict:
+    try:
+        with open("bests.json", "r") as file:
+            return json.load(file)
+    except: return {}
+
+
+
+
 screen = pg.display.set_mode(resolution(), pg.RESIZABLE)
 pg.display.set_caption("Squares And Coins")
 try:
@@ -40,4 +57,11 @@ try:
 except:
     pass
 
+
 top_panel_h = topPanelHeight() + 15
+
+
+
+
+COLOR_FILL_START = (0, 128, 0)
+clock = pg.time.Clock()

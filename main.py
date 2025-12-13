@@ -4,17 +4,10 @@
 
 from init import *
 
-import random, time, os, json, sys
+import random, time, os, json, sys, shop
 
 import instruction
 import classes as cls
-
-
-try:
-    import hak
-    have_hak = True
-except:
-    have_hak = False
 
 
 
@@ -22,29 +15,30 @@ except:
 sys.setrecursionlimit(10_000_000)
 
 
-def load_bests() -> dict:
-    try:
-        with open("bests.json", "r") as file:
-            return json.load(file)
-    except: return {}
 
-def save_bests(bests_scores: dict) -> None:
+
+def save(bests_scores: dict, sum_scores: dict, purchased: dict) -> None:
     try:
         with open("bests.json", 'r') as file:
             data = json.load(file)
     except:
         with open("bests.json", 'w') as file:
-            json.dump(bests_scores, file)
+            json.dump({"bests_scores": bests_scores, "sum_score": sum_scores, "purchased": purchased}, 
+                      file)
     else:
         try:
-            if data[current_name] >= bests_scores[current_name]: 
-                return
+            if data["bests_scores"][current_name] >= bests_scores[current_name]: 
+                with open("bests.json", "w"):
+                    json.dump({"bests_scores": data["bests_scores"], "sum_score": sum_scores, 
+                               "purchased": purchased},
+                              file)
             else:
                 with open("bests.json", 'w') as file:
-                    json.dump(bests_scores, file)
+                    json.dump({"bests_scores": bests_scores, "sum_score": sum_scores, "purchased": purchased}, 
+                              file)
         except:
             with open("bests.json", 'w') as file:
-                    json.dump(bests_scores, file)
+                    json.dump({"bests_scores": bests_scores, "sum_score": sum_scores, "purchased": purchased}, file)
 
 
 
@@ -58,33 +52,36 @@ current_w = int(MON_W * screen_w / 100)
 current_h = int(MON_H * screen_y / 100)
 font = pg.font.Font(size=50)
 try:
-    pg.mixer.music.load(os.path.join("Music", "music.mp3"))
+    pg.mixer.music.load(os.path.join("Graphics", "Music", "music.mp3"))
     pg.mixer.music.set_volume(1000)
 except pg.error:
     current_sound = False
 try:
-    sound_money = pg.mixer.Sound("Sounds/plus_money.mp3")
+    sound_money = pg.mixer.Sound(os.path.join("Graphics", "Sounds/plus_money.mp3"))
 except:
     current_sound = False
 
-clock = pg.time.Clock()
 
 
 
+def level_up(complexity_index, curr_level, score):
+    runMain(complexity_index, curr_level + 1, score + 3)
 
-def level_up(curr_level, score):
-    runMain(curr_level + 1, score + 3)
-
-def end(current_name, font: pg.font.Font, score, color_time, text="Игра завершена!"):
+def end(complexity_index, current_name, font: pg.font.Font, score, color_time, text="Игра завершена!"):
     global current_sound
     if current_sound == "🔊":
         pg.mixer.music.fadeout(3000)
 
-    bests = load_bests()
+    if load() != {}:
+        bests = load()["bests_scores"]
+        sum_score = load()["sum_score"]
+    else:
+        bests = {current_name: score}
+        sum_score = score
     
     if current_name not in bests or score > bests[current_name]:
         bests[current_name] = score
-        save_bests(bests)
+        save(bests, sum_score + score)
     
 
     text_over1 = font.render(text + f" Очки: {score}.", True,
@@ -135,7 +132,7 @@ def end(current_name, font: pg.font.Font, score, color_time, text="Игра за
 
         key = pg.key.get_pressed()
         if key[pg.K_SPACE]:
-            runMain()
+            runMain(complexity_index)
             
 
         if see_bests:
@@ -178,23 +175,34 @@ def start(contn_group: pg.sprite.Group):
     complexity = ("Easy", "Normal", "Hard")
     complexity_index = 0
 
-    contn_group.add(cls.ButtonSprite(pg.image.load(os.path.join("Images", "Instruct_Button.jpg")), (255, 255, 255), 
-                                     current_w // 2 - 250 / 2 / 2, 
-                                     current_h - pg.image.load(os.path.join("Images", "Instruct_Button.jpg")).get_height(),
-                                     None, "pressed2"))
+    buttons_font = pg.font.Font(os.path.join("Graphics", "Fonts", "start_buttons_font.otf"), 60)
 
-    settbutton = cls.ButtonSprite(pg.transform.scale(pg.image.load(os.path.join("Images", "setting.png")), (80, 80)),
+    contn_group.add(cls.ButtonSprite(buttons_font.render("ИНСТРУКЦИЯ", True, (254, 254, 254)), 
+                                     (255, 255, 255), 
+                                     30, 
+                                     current_h * 92 / 100,
+                                     None, "pressed2"))
+    
+    contn_group.add(
+                   cls.ButtonSprite(
+                                    buttons_font.render("МАГАЗИН", True, (254, 254, 254)), 
+                                    (255, 255, 255), current_w - buttons_font.render("МАГАЗИН", True, (254, 254, 254)).get_width() - 30, 
+                                    current_h * 92 / 100, None, "pressed3"
+                                    )
+                    )
+
+    settbutton = cls.ButtonSprite(pg.transform.scale(pg.image.load(os.path.join("Graphics", "Images", "setting.png")), (80, 80)),
                               ("is png",),
                               current_w // 2 - 250 / 2 / 2 + 28,
-                              current_h - pg.image.load(os.path.join("Images", "Instruct_Button.jpg")).get_height() - 80,
+                              current_h - pg.image.load(os.path.join("Graphics", "Images", "Instruct_Button.jpg")).get_height() - 40,
                               None, "pressed1")
     buttons.add(settbutton)
 
     strelki = (
-                cls.ButtonSprite(pg.image.load("Images/strelkaUP.png"),
+                cls.ButtonSprite(pg.image.load(os.path.join("Graphics", "Images/strelkaUP.png")),
                                 ("is png",),
                                 current_w // 2 - 250 / 2 / 2 + 59.5,
-                                current_h -  pg.image.load(os.path.join("Images", "Instruct_Button.jpg")).get_height() - 125,
+                                current_h -  pg.image.load(os.path.join("Graphics", "Images", "Instruct_Button.jpg")).get_height() - 125,
                                 None, "pressed"),
               )
 
@@ -202,16 +210,19 @@ def start(contn_group: pg.sprite.Group):
     run = True
     test = False
     test2 = True
-    while run:
+    while True:
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 run = False
                 pg.quit()
-                raise cls.Exit("The user has logged out of the program.")
 
-        screen.blit(pg.image.load("Images/background_start.png"), screen.get_rect())
+        if run:
+            pass
+        else:
+            break
+        screen.blit(pg.image.load(os.path.join("Graphics", "Images", "background_start.png")), screen.get_rect())
 
-        big_font = pg.font.Font(size=75)
+        big_font = pg.font.Font(os.path.join("Graphics", "Fonts", "load_text.otf"), 50)
         text_welcome = big_font.render("Squares And Coins", True, (0, 0, 0))
 
         mini_font = pg.font.Font(None, 25)
@@ -221,16 +232,33 @@ def start(contn_group: pg.sprite.Group):
 
         # screen.blit(text_instruction1, (current_w / 2 - 95, current_h - 40))
         # screen.blit(text_instruction2, (current_w / 2 - 100, current_h - 20))
-        screen.blit(text_welcome, (current_w / 3, current_h / 4))
+        screen.blit(text_welcome, (current_w / 2 - text_welcome.get_width() / 2, 
+                                   current_h / 2 - text_welcome.get_height() / 2 - current_h * 25 / 100))
         for item in contn_group:
             result_update_contn = item.update()
             if result_update_contn == "pressed1":
                 screen = pg.display.set_mode((current_w, current_h), pg.RESIZABLE)
-                return complexity_index
+                if complexity_index is not None:
+                    try:
+                        return complexity_index, purchased
+                    except:
+                        return complexity_index
+                else:
+                    try:
+                        return 0, purchased
+                    except: 
+                        return 0
             
             if result_update_contn == "pressed2":
                 current_name, current_sound, current_sound_volume = instruction.instruction(current_name, current_sound)
                 pg.mixer.music.set_volume(current_sound_volume)
+
+            if result_update_contn == "pressed3":
+                if load():
+                    purchased = shop.open_shop(load()["sum_score"][current_name])
+                else:
+                    purchased = shop.open_shop(0)
+
 
         if strelki[0].update() == "pressed":
             if test2:
@@ -260,33 +288,42 @@ def start(contn_group: pg.sprite.Group):
 
 
 
-def runMain(lvl=1, score=0):
+def runMain(complexity_index, purchased={"щит": 0, "часы": 0, "нитро": 0, "удвоитель": 0},
+            lvl=1, score=0):
     global current_name, current_sound, current_sound_volume, screen, current_w, current_h
 
 
-    if current_sound == "🔊":
-        pg.mixer.music.play(-1)
-    else:
-        pg.mixer.music.stop()
     sprites = pg.sprite.Group()
     hide_sprites = pg.sprite.Group()
     hpes = pg.sprite.Group()
     cristalles = pg.sprite.Group()
     contn_group = pg.sprite.Group()
 
-    COLOR_FILL_START = (0, 128, 0)
+
     color_fill = COLOR_FILL_START
 
     PRESSED = "pressed"
+    speeds_player = {"Easy": 5, "Normal": 9, "Hard": 15}
+
+
+    complexity = ("Easy", "Normal", "Hard")[complexity_index]
+
+
+    if current_sound == "🔊":
+        pg.mixer.music.play(-1)
+    else:
+        pg.mixer.music.stop()
 
 
     P_SIZE = 40
     p = pg.Rect(180, 180, P_SIZE, P_SIZE)
     p_isCollideEnemy = False
-    standart_speed_p = 5
-    speed_p = 5
+    standart_speed_p = speeds_player[complexity]
+    speed_p = standart_speed_p
     turbo_speed = 9
     p_is_turbo = False
+    turbo_ost = 100
+    turbo_sekmer = time.time_ns() / 1_000_000_000
     turbo_lst = []
     player_hide = cls.PlayerHide()
     hide_sprites.add(player_hide)
@@ -321,7 +358,7 @@ def runMain(lvl=1, score=0):
     
     text_welcome = pg.font.Font(size=75).render("Squares And Coins", True, (0, 0, 0))
 
-    contn = cls.ButtonSprite(pg.image.load(os.path.join("Images", "Play_Button.png")),
+    contn = cls.ButtonSprite(pg.image.load(os.path.join("Graphics", "Images", "Play_Button.png")),
                             ("is png",),
                             current_w // 2 - 250 / 2, 
                             current_h // 2 + text_welcome.get_height() + current_h * 0.1 // 100, None, PRESSED)
@@ -373,18 +410,28 @@ def runMain(lvl=1, score=0):
     text_pause = font.render("Игра на паузе.", True, (0, 0, 0))
     
 
-    while run:
+    while True:
         for event in pg.event.get():
             if event.type == pg.QUIT:
+                if load() != {}:
+                    save(bests_scores, load()["sum_score"], purchased)
+                else:
+                    save(bests_scores, score, purchased)
+
                 run = False
                 pg.quit()
-                raise cls.Exit("The user has logged out of the program.")
 
             if event.type == pg.VIDEORESIZE:
                 current_w, current_h = event.size
                 coin_xFinish = int(current_w - 10)
                 coin_yBegin = int(top_panel_h + 10)
                 coin_yFinish = int(current_h - 10)
+
+
+        if run:
+            pass
+        else:
+            break
 
 
         if pause:
@@ -437,9 +484,15 @@ def runMain(lvl=1, score=0):
             else: p_is_drive_y = False
 
             if key[pg.K_SPACE]:
-                speed_p += 9
+                if turbo_ost > 0:
+                    speed_p += 9
+                else:
+                    speed_p = standart_speed_p
                 if key[pg.K_d] or key[pg.K_KP6] or key[pg.K_RIGHT] or key[pg.K_w] or key[pg.K_KP8] or key[pg.K_UP] or key[pg.K_s] or key[pg.K_KP5] or key[pg.K_DOWN]:
-                    p_is_turbo = True
+                    if turbo_ost > 0:
+                        p_is_turbo = True
+                        turbo_ost -= 0.5
+                    else: p_is_turbo = False
             else:
                 speed_p = 5; p_is_turbo = False
 
@@ -485,6 +538,12 @@ def runMain(lvl=1, score=0):
 
             counter = 0
 
+
+            if time.time_ns() / 1_000_000_000 - turbo_sekmer >= 2:
+                turbo_sekmer = time.time_ns() / 1_000_000_000
+                turbo_ost += 1.999999999999999999999999999999999999999999999999
+
+
             for i in coins_types:
                 if p.collidepoint(i['geo']):
                     if current_sound == "🔊":
@@ -495,8 +554,10 @@ def runMain(lvl=1, score=0):
                     i['geo'] = (random.randint(coin_xBegin, coin_xFinish), random.randint(coin_yBegin, coin_yFinish));
                     i['size'] = random.randint(10, 30)
 
-                    if i['minus'] == -1:
-                        end(current_name, font, score, color_time, "Ты подорвался на мине!")
+                    if i['minus'] == -1 and len(hpes) <= 1:
+                        end(complexity_index, current_name, font, score, color_time, "Ты подорвался на мине!")
+                    elif i['minus'] == -1:
+                        hpes.remove(hpes.sprites()[-1])
                     else:
                         score += i['plus']; score -= i['minus']
 
@@ -537,14 +598,14 @@ def runMain(lvl=1, score=0):
 
             if score < 0:
                 run = False
-                end(current_name, font, score, color_time)
+                end(complexity_index, current_name, font, score, color_time)
 
             if p.colliderect(eggm) and p_is_turbo == bool(False):
                 if p_isCollideEnemy == True: pass
                 else:
                     p_isCollideEnemy = True
                     if len(hpes) == 1: 
-                        end(current_name, font, score, color_time)
+                        end(complexity_index, current_name, font, score, color_time)
                     else: 
                         hpes.remove(hpes.sprites()[-1])
                         color_fill = (255, 0, 0)
@@ -561,7 +622,7 @@ def runMain(lvl=1, score=0):
                 if p_help.colliderect(eggm):
                     alive_p_help = False
 
-            if p.collidepoint(eggm.x, eggm.y) and p_is_turbo: level_up(lvl, score); score += 3
+            if p.colliderect(eggm) and p_is_turbo: level_up(complexity_index, lvl, score); score += 3
 
             if time_retarder is not None and pg.sprite.spritecollide(time_retarder, hide_sprites, False):
                 sprites.remove(time_retarder)
@@ -679,9 +740,15 @@ def runMain(lvl=1, score=0):
             text_width = text_score.get_width()
             screen.blit(text_score, (current_w - text_width - PADDING_LEFT_RIGHT, 20))
 
-            for i in load_bests():
-                if i == current_name:
-                    best = load_bests()[i]
+
+            bests_scores = load()
+            if bests_scores == {}:
+                best = score
+            else:
+                for i in load()["bests_scores"]:
+                    if i == current_name:
+                        best = load()["bests_scores"][i]
+
             try:
                 text_best = font.render(f"Твой рекорд: {best}", True, (0, 0, 0))                
             except:
@@ -694,6 +761,12 @@ def runMain(lvl=1, score=0):
                 text_bestW = text_best.get_width()
                 screen.blit(text_best, (current_w - text_bestW - 8, 
                                         text_score.get_height() + 28))
+                
+            
+            text_tust = font.render(f"Запас нитро: {turbo_ost}", True, (0, 0, 255))
+            screen.blit(text_tust, 
+                        (text_tust.get_width() - 250, 
+                         current_h - text_tust.get_height() - 25))
 
             mini_font = pg.font.Font(None, 25)
             text_instruction1 = mini_font.render(f"Что бы увидеть инструкцию,", True, (0, 0, 0))
@@ -702,18 +775,17 @@ def runMain(lvl=1, score=0):
             screen.blit(text_instruction2, (current_w / 2 - 100, current_h - 20))
 
             if remaining_time <= 0:
-                end(current_name, font, score, color_time)
+                end(complexity_index, current_name, font, score, color_time)
 
         pg.display.flip()
         clock.tick(60)
 
 
 
-start(pg.sprite.Group(cls.ButtonSprite(pg.image.load(os.path.join("Images", "Play_Button.png")),
+runMain(start(pg.sprite.Group(cls.ButtonSprite(pg.image.load(os.path.join("Graphics", "Images", "Play_Button.png")),
                                   ("is png",),
                                    current_w // 2 - 250 / 2, 
                                    current_h // 2 + pg.font.Font(size=75).render("Squares And Coins", 
                                    True, 
                                    (0, 0, 0)).get_height() + current_h * 0.1 // 100, 
-                                   None, "pressed1")))
-runMain()
+                                   None, "pressed1"))))
