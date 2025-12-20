@@ -1,8 +1,0 @@
-2025-12-13 16:45:32,756 - WDM - INFO - ====== WebDriver manager ======
-2025-12-13 16:45:33,658 - WDM - INFO - Get LATEST chromedriver version for google-chrome
-2025-12-13 16:45:34,069 - WDM - INFO - Get LATEST chromedriver version for google-chrome
-2025-12-13 16:45:34,348 - WDM - INFO - Driver [C:\Users\defen\.wdm\drivers\chromedriver\win64\143.0.7499.42\chromedriver-win32/chromedriver.exe] found in cache
-2025-12-13 16:45:35,345 - shop_processor - INFO - WebDriver initialized successfully
-2025-12-13 16:45:35,345 - shop_processor - INFO - Opening shop at: file:///C:Users/defen/YandexDisk/Private/Projects/Coddy/Python/PyGame/Square%20And%20Coins/ShopSite/index.html
-2025-12-13 16:45:37,466 - shop_processor - INFO - Shop opened successfully
-2025-12-13 16:45:37,466 - shop_processor - INFO - Waiting for user action (timeout: 600000s)
