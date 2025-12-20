@@ -175,7 +175,7 @@ def instruction(current_name, current_sound):
             }
         except ValueError:
             close.result = {
-                'name': name.get(),
+                'name': name.get() if name.get() else "Steve",
                 'sound': "🔊" if butt_sound["text"] == "🔊" else "🔇",
                 'sound_volume': 100
             }

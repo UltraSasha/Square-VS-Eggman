@@ -89,7 +89,7 @@ def end(complexity_index, current_name, font: pg.font.Font, score, color_time, t
                              (color_time['R'], color_time['G'], color_time['B']))
     text_over3 = font.render(f"Твой рекорд: {bests[current_name]}", True, 
                              (color_time['R'], color_time['G'], color_time['B']))
-    text_over4 = font.render(f"Другие рекорды: ", True, 
+    text_over4 = font.render(f"Другие рекорды:  ", True, 
                             (color_time['R'], color_time['G'], color_time['B']))
     
 
@@ -420,7 +420,7 @@ def runMain(complexity_index, # purchased={"щит": 0, "часы": 0, "нитр
                         bests_scores
                     except: 
                         bests_scores = load()["bests_scores"]
-                    bests_scores[current_name] = (bests_scores[current_name], load()["bests_scores"][1])
+                    bests_scores[current_name] = (bests_scores[current_name][0], load()["bests_scores"][current_name][1])
                 else:
                     bests_scores = {current_name: (score, score)}
 
@@ -747,10 +747,10 @@ def runMain(complexity_index, # purchased={"щит": 0, "часы": 0, "нитр
             if not load():
                 best = score
             else:
-                bests_scores = load()["bests_scores"][0]
+                bests_scores = load()["bests_scores"]
                 for i in bests_scores:
                     if i == current_name:
-                        best = bests_scores[i]
+                        best = bests_scores[i][0]
 
             try:
                 text_best = font.render(f"Твой рекорд: {best}", True, (0, 0, 0))                
