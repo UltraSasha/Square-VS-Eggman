@@ -1,3 +1,10 @@
-__pycache__/
+__pycache__
 
-test.py/
+test.py
+
+build/
+dist/
+
+shop_format.json
+
+*.spec

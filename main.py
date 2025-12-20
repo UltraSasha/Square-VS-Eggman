@@ -1,4 +1,4 @@
-# Square And Coins
+# Square VS Eggman
 # Версия 2.9
 
 
@@ -17,28 +17,27 @@ sys.setrecursionlimit(10_000_000)
 
 
 
-def save(bests_scores: dict, sum_scores: dict, purchased: dict) -> None:
+def save(bests_scores: dict) -> None:
     try:
         with open("bests.json", 'r') as file:
             data = json.load(file)
     except:
         with open("bests.json", 'w') as file:
-            json.dump({"bests_scores": bests_scores, "sum_score": sum_scores, "purchased": purchased}, 
+            json.dump({"bests_scores": bests_scores}, 
                       file)
     else:
         try:
-            if data["bests_scores"][current_name] >= bests_scores[current_name]: 
+            if data["bests_scores"][0][current_name] >= bests_scores[current_name]: 
                 with open("bests.json", "w"):
-                    json.dump({"bests_scores": data["bests_scores"], "sum_score": sum_scores, 
-                               "purchased": purchased},
+                    json.dump({"bests_scores": data["bests_scores"][0]},
                               file)
             else:
                 with open("bests.json", 'w') as file:
-                    json.dump({"bests_scores": bests_scores, "sum_score": sum_scores, "purchased": purchased}, 
+                    json.dump({"bests_scores": bests_scores}, 
                               file)
         except:
             with open("bests.json", 'w') as file:
-                    json.dump({"bests_scores": bests_scores, "sum_score": sum_scores, "purchased": purchased}, file)
+                    json.dump({"bests_scores": bests_scores}, file)
 
 
 
@@ -73,8 +72,8 @@ def end(complexity_index, current_name, font: pg.font.Font, score, color_time, t
         pg.mixer.music.fadeout(3000)
 
     if load() != {}:
-        bests = load()["bests_scores"]
-        sum_score = load()["sum_score"]
+        bests = load()["bests_scores"][0]
+        sum_score = load()["bests_scores"][1]
     else:
         bests = {current_name: score}
         sum_score = score
@@ -123,7 +122,7 @@ def end(complexity_index, current_name, font: pg.font.Font, score, color_time, t
             if event.type == pg.QUIT:
                 pg.quit()
                 expectation = False
-                exit()
+                return
 
             if event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
                 mouse_pos = pg.mouse.get_pos()
@@ -183,6 +182,7 @@ def start(contn_group: pg.sprite.Group):
                                      current_h * 92 / 100,
                                      None, "pressed2"))
     
+    """
     contn_group.add(
                    cls.ButtonSprite(
                                     buttons_font.render("МАГАЗИН", True, (254, 254, 254)), 
@@ -190,26 +190,27 @@ def start(contn_group: pg.sprite.Group):
                                     current_h * 92 / 100, None, "pressed3"
                                     )
                     )
+    """
 
     settbutton = cls.ButtonSprite(pg.transform.scale(pg.image.load(os.path.join("Graphics", "Images", "setting.png")), (80, 80)),
-                              ("is png",),
-                              current_w // 2 - 250 / 2 / 2 + 28,
-                              current_h - pg.image.load(os.path.join("Graphics", "Images", "Instruct_Button.jpg")).get_height() - 40,
-                              None, "pressed1")
+                                    ("is png",),
+                                    current_w // 2 - 250 / 2 / 2 + 28,
+                                    current_h - pg.image.load(os.path.join("Graphics", "Images", "Instruct_Button.jpg")).get_height() - 40,
+                                    None, "pressed1")
     buttons.add(settbutton)
 
     strelki = (
                 cls.ButtonSprite(pg.image.load(os.path.join("Graphics", "Images/strelkaUP.png")),
                                 ("is png",),
                                 current_w // 2 - 250 / 2 / 2 + 59.5,
-                                current_h -  pg.image.load(os.path.join("Graphics", "Images", "Instruct_Button.jpg")).get_height() - 125,
+                                current_h * 90 / 100,
                                 None, "pressed"),
               )
 
 
     run = True
-    test = False
-    test2 = True
+    settings_complexty_is_open = False
+    
     while True:
         for event in pg.event.get():
             if event.type == pg.QUIT:
@@ -219,11 +220,13 @@ def start(contn_group: pg.sprite.Group):
         if run:
             pass
         else:
+            raise SystemExit
             break
+
         screen.blit(pg.image.load(os.path.join("Graphics", "Images", "background_start.png")), screen.get_rect())
 
         big_font = pg.font.Font(os.path.join("Graphics", "Fonts", "load_text.otf"), 50)
-        text_welcome = big_font.render("Squares And Coins", True, (0, 0, 0))
+        text_welcome = big_font.render("Square VS Eggman", True, (0, 0, 0))
 
         mini_font = pg.font.Font(None, 25)
         text_instruction1 = mini_font.render(f"Что бы увидеть инструкцию,", True, (0, 0, 0))
@@ -253,32 +256,31 @@ def start(contn_group: pg.sprite.Group):
                 current_name, current_sound, current_sound_volume = instruction.instruction(current_name, current_sound)
                 pg.mixer.music.set_volume(current_sound_volume)
 
+            """Пока убрал магазин.
             if result_update_contn == "pressed3":
                 if load():
-                    purchased = shop.open_shop(load()["sum_score"][current_name])
+                    purchased = shop.open_shop(load()["bests_scores"][1][current_name])
                 else:
                     purchased = shop.open_shop(0)
-
+            """
 
         if strelki[0].update() == "pressed":
-            if test2:
-                complexity_index += 1
-                test2 = False
-        else: test2 = True
-        
+            complexity_index += 1
 
-        if test:
+
+        if settings_complexty_is_open:
             try:
-                screen.blit(font.render(complexity[complexity_index], True, (0, 0, 0)),
-                            (current_w // 2 - 250 / 2 / 2 - 67,
-                            current_w // 2 - 250 / 2 / 2 - 67 + 80))
+                complexity_text = font.render(complexity[complexity_index], True, (0, 0, 0))
+                screen.blit(complexity_text,
+                            (current_w // 2 - 250 / 2 / 2 + 59.5 - complexity_text.get_width() - 10,
+                             current_h * 93 / 100))
             except IndexError:
                 complexity_index = 0
 
         if settbutton.update() == "pressed1":
             buttons.remove(settbutton)
             buttons.add(strelki[0])
-            test = True
+            settings_complexty_is_open = True
 
         contn_group.draw(screen)
         buttons.draw(screen)
@@ -288,7 +290,7 @@ def start(contn_group: pg.sprite.Group):
 
 
 
-def runMain(complexity_index, purchased={"щит": 0, "часы": 0, "нитро": 0, "удвоитель": 0},
+def runMain(complexity_index, # purchased={"щит": 0, "часы": 0, "нитро": 0, "удвоитель": 0},
             lvl=1, score=0):
     global current_name, current_sound, current_sound_volume, screen, current_w, current_h
 
@@ -306,7 +308,7 @@ def runMain(complexity_index, purchased={"щит": 0, "часы": 0, "нитро
     speeds_player = {"Easy": 5, "Normal": 9, "Hard": 15}
 
 
-    complexity = ("Easy", "Normal", "Hard")[complexity_index]
+    complexity = ("Easy", "Normal", "Hard")[complexity_index if complexity_index else 0]
 
 
     if current_sound == "🔊":
@@ -356,7 +358,7 @@ def runMain(complexity_index, purchased={"щит": 0, "часы": 0, "нитро
     cristall = cls.Cristall(random.randint(40, current_w - 40), random.randint(top_panel_h, current_h - 40))
     cristalles.add(cristall)
     
-    text_welcome = pg.font.Font(size=75).render("Squares And Coins", True, (0, 0, 0))
+    text_welcome = pg.font.Font(size=75).render("Square VS Eggman", True, (0, 0, 0))
 
     contn = cls.ButtonSprite(pg.image.load(os.path.join("Graphics", "Images", "Play_Button.png")),
                             ("is png",),
@@ -413,25 +415,26 @@ def runMain(complexity_index, purchased={"щит": 0, "часы": 0, "нитро
     while True:
         for event in pg.event.get():
             if event.type == pg.QUIT:
-                if load() != {}:
-                    save(bests_scores, load()["sum_score"], purchased)
+                if load():
+                    try:
+                        bests_scores
+                    except: 
+                        bests_scores = load()["bests_scores"]
+                    bests_scores[current_name] = (bests_scores[current_name], load()["bests_scores"][1])
                 else:
-                    save(bests_scores, score, purchased)
+                    bests_scores = {current_name: (score, score)}
+
+                save({current_name: (score, score)}) # , purchased)
 
                 run = False
                 pg.quit()
+                raise SystemExit
 
             if event.type == pg.VIDEORESIZE:
                 current_w, current_h = event.size
                 coin_xFinish = int(current_w - 10)
                 coin_yBegin = int(top_panel_h + 10)
                 coin_yFinish = int(current_h - 10)
-
-
-        if run:
-            pass
-        else:
-            break
 
 
         if pause:
@@ -741,13 +744,13 @@ def runMain(complexity_index, purchased={"щит": 0, "часы": 0, "нитро
             screen.blit(text_score, (current_w - text_width - PADDING_LEFT_RIGHT, 20))
 
 
-            bests_scores = load()
-            if bests_scores == {}:
+            if not load():
                 best = score
             else:
-                for i in load()["bests_scores"]:
+                bests_scores = load()["bests_scores"][0]
+                for i in bests_scores:
                     if i == current_name:
-                        best = load()["bests_scores"][i]
+                        best = bests_scores[i]
 
             try:
                 text_best = font.render(f"Твой рекорд: {best}", True, (0, 0, 0))                
@@ -785,7 +788,7 @@ def runMain(complexity_index, purchased={"щит": 0, "часы": 0, "нитро
 runMain(start(pg.sprite.Group(cls.ButtonSprite(pg.image.load(os.path.join("Graphics", "Images", "Play_Button.png")),
                                   ("is png",),
                                    current_w // 2 - 250 / 2, 
-                                   current_h // 2 + pg.font.Font(size=75).render("Squares And Coins", 
+                                   current_h // 2 + pg.font.Font(size=75).render("Square VS Eggman", 
                                    True, 
                                    (0, 0, 0)).get_height() + current_h * 0.1 // 100, 
                                    None, "pressed1"))))

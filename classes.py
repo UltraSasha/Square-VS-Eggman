@@ -39,7 +39,12 @@ class ButtonSprite(pg.sprite.Sprite):
                         return self.in_sprite
             
             if self.press_on_sprite is not None:
-                if a == 0 and pg.mouse.get_pressed()[0]:
+                button_is_press = False
+                for i in pg.event.get():
+                    if i.type == pg.MOUSEBUTTONDOWN:
+                        button_is_press = pg.mouse.get_pressed()[0]
+                        
+                if a == 0 and button_is_press:
                     return self.press_on_sprite
                 else:
                     if (r, g, b) == self.alphacolor:

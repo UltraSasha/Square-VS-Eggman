@@ -51,9 +51,9 @@ def load() -> dict:
 
 
 screen = pg.display.set_mode(resolution(), pg.RESIZABLE)
-pg.display.set_caption("Squares And Coins")
+pg.display.set_caption("Square VS Eggman")
 try:
-    pg.display.set_icon(pg.image.load('icon.png'))
+    pg.display.set_icon(pg.image.load(os.path.join("Graphics", "Icon", "icon.png")))
 except:
     pass
 
