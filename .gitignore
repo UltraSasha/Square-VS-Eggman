@@ -5,6 +5,8 @@ test.py
 build/
 dist/
 
+password.txt
+
 shop_format.json
 
 *.spec

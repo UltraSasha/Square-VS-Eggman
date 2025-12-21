@@ -1,5 +1,5 @@
-('D:\\YandexDisk\\Private\\Projects\\Coddy\\Python\\PyGame\\Square And '
- 'Coins\\build\\main\\PYZ-00.pyz',
+('D:\\YandexDisk\\Private\\Projects\\Coddy\\Python\\PyGame\\Square VS '
+ 'Eggman\\build\\main\\PYZ-00.pyz',
  [('__future__',
    'C:\\Users\\sasha\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\__future__.py',
    'PYMODULE'),
@@ -235,8 +235,8 @@
    'C:\\Users\\sasha\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\calendar.py',
    'PYMODULE'),
   ('classes',
-   'D:\\YandexDisk\\Private\\Projects\\Coddy\\Python\\PyGame\\Square And '
-   'Coins\\classes.py',
+   'D:\\YandexDisk\\Private\\Projects\\Coddy\\Python\\PyGame\\Square VS '
+   'Eggman\\classes.py',
    'PYMODULE'),
   ('code',
    'C:\\Users\\sasha\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\code.py',
@@ -406,10 +406,6 @@
   ('gzip',
    'C:\\Users\\sasha\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\gzip.py',
    'PYMODULE'),
-  ('hak',
-   'D:\\YandexDisk\\Private\\Projects\\Coddy\\Python\\PyGame\\Square And '
-   'Coins\\hak.py',
-   'PYMODULE'),
   ('hashlib',
    'C:\\Users\\sasha\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\hashlib.py',
    'PYMODULE'),
@@ -501,15 +497,15 @@
    'C:\\Users\\sasha\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\importlib\\util.py',
    'PYMODULE'),
   ('init',
-   'D:\\YandexDisk\\Private\\Projects\\Coddy\\Python\\PyGame\\Square And '
-   'Coins\\init.py',
+   'D:\\YandexDisk\\Private\\Projects\\Coddy\\Python\\PyGame\\Square VS '
+   'Eggman\\init.py',
    'PYMODULE'),
   ('inspect',
    'C:\\Users\\sasha\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\inspect.py',
    'PYMODULE'),
   ('instruction',
-   'D:\\YandexDisk\\Private\\Projects\\Coddy\\Python\\PyGame\\Square And '
-   'Coins\\instruction.py',
+   'D:\\YandexDisk\\Private\\Projects\\Coddy\\Python\\PyGame\\Square VS '
+   'Eggman\\instruction.py',
    'PYMODULE'),
   ('ipaddress',
    'C:\\Users\\sasha\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\ipaddress.py',
@@ -528,8 +524,8 @@
    'C:\\Users\\sasha\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\json\\scanner.py',
    'PYMODULE'),
   ('load_scale_image',
-   'D:\\YandexDisk\\Private\\Projects\\Coddy\\Python\\PyGame\\Square And '
-   'Coins\\load_scale_image.py',
+   'D:\\YandexDisk\\Private\\Projects\\Coddy\\Python\\PyGame\\Square VS '
+   'Eggman\\load_scale_image.py',
    'PYMODULE'),
   ('logging',
    'C:\\Users\\sasha\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\logging\\__init__.py',
@@ -1250,8 +1246,8 @@
    'C:\\Users\\sasha\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\shlex.py',
    'PYMODULE'),
   ('shop',
-   'D:\\YandexDisk\\Private\\Projects\\Coddy\\Python\\PyGame\\Square And '
-   'Coins\\shop.py',
+   'D:\\YandexDisk\\Private\\Projects\\Coddy\\Python\\PyGame\\Square VS '
+   'Eggman\\shop.py',
    'PYMODULE'),
   ('shutil',
    'C:\\Users\\sasha\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\shutil.py',

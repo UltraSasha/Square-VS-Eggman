@@ -1,16 +1,16 @@
-# Square And Coins
+# Square VS Eggman
 # Инициализация
 
 
+from pygame.constants import __dict__ as pgConstantsDict
+
 import pygame as pg
+
+
+
 import tkinter as tk
 import json
 
-try:
-    import hak
-    have_hak = True
-except:
-    have_hak = False
 
 import os
 

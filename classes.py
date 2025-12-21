@@ -1,4 +1,4 @@
-# Square And Coins
+# Square VS Eggman
 # Классы
 
 

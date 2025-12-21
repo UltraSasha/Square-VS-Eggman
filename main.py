@@ -15,6 +15,7 @@ import classes as cls
 sys.setrecursionlimit(10_000_000)
 
 
+have_hack = False
 
 
 def save(bests_scores: dict) -> None:
@@ -166,7 +167,7 @@ def end(complexity_index, current_name, font: pg.font.Font, score, color_time, t
         
 
 def start(contn_group: pg.sprite.Group):
-    global screen, current_name, current_sound, current_sound_volume
+    global screen, current_name, current_sound, current_sound_volume, have_hack
 
     screen = pg.display.set_mode((current_w, current_h))
 
@@ -181,6 +182,14 @@ def start(contn_group: pg.sprite.Group):
                                      30, 
                                      current_h * 92 / 100,
                                      None, "pressed2"))
+    
+    with open("password.txt", encoding="utf-8") as file:
+        password_for_hack = file.read().lower()
+        if len(password_for_hack) > 8:
+            raise Exception("Длина пароля для активации читов не должна превышать 8 символов!")
+    
+    index_for_passHack = 0
+        
     
     """
     contn_group.add(
@@ -217,6 +226,13 @@ def start(contn_group: pg.sprite.Group):
                 run = False
                 pg.quit()
 
+            if event.type == pg.KEYUP:
+                expected_letter = password_for_hack[index_for_passHack]
+                if event.key == pgConstantsDict[f"K_{expected_letter}"]:
+                    index_for_passHack += 1
+                else:
+                    index_for_passHack = 0
+
         if run:
             pass
         else:
@@ -243,12 +259,12 @@ def start(contn_group: pg.sprite.Group):
                 screen = pg.display.set_mode((current_w, current_h), pg.RESIZABLE)
                 if complexity_index is not None:
                     try:
-                        return complexity_index, purchased
+                        return complexity_index, purchased # type: ignore
                     except:
                         return complexity_index
                 else:
                     try:
-                        return 0, purchased
+                        return 0, purchased # type: ignore
                     except: 
                         return 0
             
@@ -281,6 +297,9 @@ def start(contn_group: pg.sprite.Group):
             buttons.remove(settbutton)
             buttons.add(strelki[0])
             settings_complexty_is_open = True
+
+        if len(password_for_hack) - 1 == index_for_passHack:
+            have_hack = True
 
         contn_group.draw(screen)
         buttons.draw(screen)
@@ -366,7 +385,7 @@ def runMain(complexity_index, # purchased={"щит": 0, "часы": 0, "нитр
                             current_h // 2 + text_welcome.get_height() + current_h * 0.1 // 100, None, PRESSED)
     contn_group.add(contn)
 
-    if have_hak:
+    if have_hack:
         p_help = pg.rect.Rect(current_w, current_h, P_SIZE, P_SIZE)
         alive_p_help = True
         speed_pHelp = 0.6
@@ -417,10 +436,13 @@ def runMain(complexity_index, # purchased={"щит": 0, "часы": 0, "нитр
             if event.type == pg.QUIT:
                 if load():
                     try:
-                        bests_scores
+                        bests_scores[current_name]
                     except: 
                         bests_scores = load()["bests_scores"]
-                    bests_scores[current_name] = (bests_scores[current_name][0], load()["bests_scores"][current_name][1])
+                        if current_name not in bests_scores:
+                            bests_scores[current_name] = (score, score)
+
+                    bests_scores[current_name] = (bests_scores[current_name][0], bests_scores[current_name][1])
                 else:
                     bests_scores = {current_name: (score, score)}
 
@@ -517,7 +539,7 @@ def runMain(complexity_index, # purchased={"щит": 0, "часы": 0, "нитр
             p.y = max(top_panel_h, p.y)
             p.y = min(current_h - P_SIZE, p.y)
 
-            if have_hak:
+            if have_hack:
                 counter = 0
                 if coins_types[counter]['geo'][0] < p_help.x:
                     p_help.x -= speed_pHelp
@@ -576,7 +598,7 @@ def runMain(complexity_index, # purchased={"щит": 0, "часы": 0, "нитр
 
             eggman.move(eggm.x - 40, eggm.y - 40)
 
-            if have_hak:
+            if have_hack:
                 if p_help.x < eggm.x:
                     p_help.x += speed_pHelp
                 else:
@@ -621,7 +643,7 @@ def runMain(complexity_index, # purchased={"щит": 0, "часы": 0, "нитр
                 if timer_stay_time2 <= 0:
                     color_fill = COLOR_FILL_START
 
-            if have_hak: 
+            if have_hack: 
                 if p_help.colliderect(eggm):
                     alive_p_help = False
 
@@ -721,7 +743,7 @@ def runMain(complexity_index, # purchased={"щит": 0, "часы": 0, "нитр
             cristalles.draw(screen)
 
 
-            if have_hak and alive_p_help:
+            if have_hack and alive_p_help:
                 pg.draw.rect(screen, (0, 255, 0), p_help)
 
             for i in coins_types:
