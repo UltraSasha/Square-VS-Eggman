@@ -1,5 +1,5 @@
 # Square VS Eggman
-# Версия 2.9
+# Версия 3.2
 
 
 from init import *
@@ -73,15 +73,16 @@ def end(complexity_index, current_name, font: pg.font.Font, score, color_time, t
         pg.mixer.music.fadeout(3000)
 
     if load() != {}:
-        bests = load()["bests_scores"][0]
-        sum_score = load()["bests_scores"][1]
+        bests = load()["bests_scores"]
+        sum_score = load()["bests_scores"][current_name][1]
     else:
         bests = {current_name: score}
         sum_score = score
     
-    if current_name not in bests or score > bests[current_name]:
-        bests[current_name] = score
-        save(bests, sum_score + score)
+    if current_name not in bests or score > bests[current_name][0]:
+        bests[current_name][0] = score
+        bests[current_name][1] = sum_score + score
+        save(bests)
     
 
     text_over1 = font.render(text + f" Очки: {score}.", True,
