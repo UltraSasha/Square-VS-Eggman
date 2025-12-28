@@ -4,9 +4,11 @@
 
 from pygame.constants import __dict__ as pgConstantsDict
 
+import sys
 import pygame as pg
 
 
+from tkinter import messagebox
 
 import tkinter as tk
 import json
@@ -24,6 +26,7 @@ def resolution():
 
 
 os.environ['SDL_VIDEO_WINDOW_POS'] = f"{resolution()[0] * 10 // 100},{resolution()[1] * 10 // 100}"
+
 
 
 pg.init()
@@ -48,12 +51,23 @@ def load() -> dict:
     except: return {}
 
 
+def get_file(*args):
+    resolve_file = os.path.join(*args)
 
+    try:
+        if not os.path.exists(resolve_file):
+            resolve_file = os.path.join("_internal", *args)
+        if not os.path.exists(resolve_file):
+            resolve_file = os.path.join(sys._MEIPASS, *args)
+    except: pass
+
+    return resolve_file
+       
 
 screen = pg.display.set_mode(resolution(), pg.RESIZABLE)
 pg.display.set_caption("Square VS Eggman")
 try:
-    pg.display.set_icon(pg.image.load(os.path.join("Graphics", "Icon", "icon.png")))
+    pg.display.set_icon(pg.image.load(get_file("Graphics", "Icon", "icon.png")))
 except:
     pass
 

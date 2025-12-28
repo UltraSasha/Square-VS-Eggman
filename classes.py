@@ -7,6 +7,11 @@ import random, os, copy
 import load_scale_image as lsi
 
 
+class GroupWithGetItem(pg.sprite.AbstractGroup):
+    def __getitem__(self, index):
+        return self.sprites()[index]
+
+
 class ButtonSprite(pg.sprite.Sprite):
     def __init__(self, img: pg.Surface, alphacolor: tuple, x, y, in_sprite = None, press_on_sprite = None):
         super().__init__()
@@ -55,7 +60,7 @@ class ButtonSprite(pg.sprite.Sprite):
 class objMiniTime(pg.sprite.Sprite):
     def __init__(self):
         super().__init__()
-        self.image = pg.image.load(os.path.join("Graphics", "Images", "microtime.png"))
+        self.image = pg.image.load(get_file("Graphics", "Images", "microtime.png"))
         self.image.convert_alpha()
         self.image.set_colorkey((0, 0, 0))
         self.rect = self.image.get_rect()
@@ -67,7 +72,7 @@ class objMiniTime(pg.sprite.Sprite):
 class PlayerHide(pg.sprite.Sprite):
     def __init__(self):
         super().__init__()
-        img = pg.image.load(os.path.join("Graphics", "Images", "empty.png"))
+        img = pg.image.load(get_file("Graphics", "Images", "empty.png"))
         self.rect = img.get_rect()
 
     def update(self, player_x, player_y):
@@ -75,17 +80,34 @@ class PlayerHide(pg.sprite.Sprite):
         self.rect.y = player_y
 
 class Hp(pg.sprite.Sprite):
-    def __init__(self, x, y):
+    def __init__(self, x: int, y: int):
         super().__init__()
-        self.image = pg.image.load(os.path.join("Graphics", "Images", "hp.png"))
+        self.image = pg.image.load(get_file("Graphics", "Images", "hp.png"))
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
 
+        self.__screen_width = screen.get_width()
+
+    @property
+    def geo_x(self):
+        # self.screen_width * get / 100 == self.rect.x Это уравнение!
+
+        preliminaryGet = 100 * self.rect.x
+
+        # self.screen_width * get == preliminaryGet
+
+        get = preliminaryGet / self.screen_width
+        return get
+
+    @property
+    def screen_width(self):
+        return self.__screen_width
+
 
 def loading_Cristall():
     surface = pg.Surface((screen.get_width(), screen.get_height()))
-    font1 = pg.font.Font(os.path.join("Graphics", "Fonts", "load_text.otf"), 50)
+    font1 = pg.font.Font(get_file("Graphics", "Fonts", "load_text.otf"), 50)
     text1 = font1.render("ЗАГРУЗКА", True, (0, 0, 0))
     font2 = pg.font.Font(None, 80)
     text2 = font2.render(". . .", True, (0, 0, 0))
@@ -95,7 +117,7 @@ def loading_Cristall():
     surface.blit(text2, (surface.get_width() / 2 + text1.get_width() / 2,
                        surface.get_height() / 2 - text1.get_height() / 2))
     if screen != surface:
-        font1 = pg.font.Font(os.path.join("Graphics", "Fonts", "load_text.otf"), 50)
+        font1 = pg.font.Font(get_file("Graphics", "Fonts", "load_text.otf"), 50)
         text1 = font1.render("ЗАГРУЗКА", True, (0, 0, 0))
         font2 = pg.font.Font(None, 60)
         text2 = font2.render(". . .", True, (0, 0, 0))
@@ -126,7 +148,7 @@ class Cristall(pg.sprite.Sprite):
             loading_Cristall()
             for i in range(1, 40):
                 filename = f"{i:02d}.jpg"
-                image = lsi.load_scaled_image(pg, os.path.join("Graphics", "Videos", "Cristall", filename), 50, 75)
+                image = lsi.load_scaled_image(pg, get_file("Graphics", "Videos", "Cristall", filename), 50, 75)
                 for i in range(5):
                     self.images.append(image)
             loading_Cristall()
@@ -171,7 +193,7 @@ class Cristall(pg.sprite.Sprite):
 class Eggman(pg.sprite.Sprite):
     def __init__(self):
         super().__init__()
-        self.image = pg.image.load(os.path.join("Graphics", "Images", "eggm.png"))
+        self.image = pg.image.load(get_file("Graphics", "Images", "eggm.png"))
         self.rect = self.image.get_rect()
     
     def move(self, new_x, new_y):

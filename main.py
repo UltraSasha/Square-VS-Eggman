@@ -52,12 +52,12 @@ current_w = int(MON_W * screen_w / 100)
 current_h = int(MON_H * screen_y / 100)
 font = pg.font.Font(size=50)
 try:
-    pg.mixer.music.load(os.path.join("Graphics", "Music", "music.mp3"))
+    pg.mixer.music.load(get_file("Graphics", "Music", "music.mp3"))
     pg.mixer.music.set_volume(1000)
 except pg.error:
     current_sound = False
 try:
-    sound_money = pg.mixer.Sound(os.path.join("Graphics", "Sounds/plus_money.mp3"))
+    sound_money = pg.mixer.Sound(get_file("Graphics", "Sounds", "plus_money.mp3"))
 except:
     current_sound = False
 
@@ -98,7 +98,7 @@ def end(complexity_index, current_name, font: pg.font.Font, score, color_time, t
     current_name = "Steve" if current_name == "" else current_name
     
 
-    butt_down = pg.rect.Rect(float(current_w * 24 // 100), 
+    butt_down = pg.rect.Rect(float(current_w * 24 / 100), 
                              float(current_h * 74 / 100),
                              font.render("следующая пара", True, (255, 255, 255)).get_width() + 15, 
                              font.render("следующая пара", True, (255, 255, 255)).get_height())
@@ -145,17 +145,17 @@ def end(complexity_index, current_name, font: pg.font.Font, score, color_time, t
         screen.fill((0, 128, 0))
         
 
-        screen.blit(text_over1, (current_w // 2 - text_over1.get_width() // 2,
-                                 current_h // 2 - text_over1.get_height() // 2))
-        screen.blit(text_over2, (current_w // 2 - text_over1.get_width() // 2,
-                                 current_h // 2 - text_over1.get_height() // 2 + text_over1.get_height() + 10))
-        screen.blit(text_over3, (current_w // 2 - text_over1.get_width() // 2,
-                                 current_h // 2 - text_over1.get_height() // 2 + text_over1.get_height() + text_over2.get_height() + 20))
+        screen.blit(text_over1, (current_w / 2 - text_over1.get_width() / 2,
+                                 current_h / 2 - text_over1.get_height() / 2))
+        screen.blit(text_over2, (current_w / 2 - text_over1.get_width() / 2,
+                                 current_h / 2 - text_over1.get_height() / 2 + text_over1.get_height() + 10))
+        screen.blit(text_over3, (current_w / 2 - text_over1.get_width() / 2,
+                                 current_h / 2 - text_over1.get_height() / 2 + text_over1.get_height() + text_over2.get_height() + 20))
         
 
-        screen.blit(text_over4, (current_w * 4 // 100, current_h * 68 // 100))
+        screen.blit(text_over4, (current_w * 4 / 100, current_h * 68 / 100))
         screen.blit(font.render(text_over5, True, (0, 0, 0)), 
-                   (text_over4.get_rect().right + 50, current_h * 68 // 100))
+                   (text_over4.get_rect().right + 50, current_h * 68 / 100))
         
 
         if see_bests and len(see_bests) > 1:
@@ -176,7 +176,7 @@ def start(contn_group: pg.sprite.Group):
     complexity = ("Easy", "Normal", "Hard")
     complexity_index = 0
 
-    buttons_font = pg.font.Font(os.path.join("Graphics", "Fonts", "start_buttons_font.otf"), 60)
+    buttons_font = pg.font.Font(get_file("Graphics", "Fonts", "start_buttons_font.otf"), 60)
 
     contn_group.add(cls.ButtonSprite(buttons_font.render("ИНСТРУКЦИЯ", True, (254, 254, 254)), 
                                      (255, 255, 255), 
@@ -184,11 +184,14 @@ def start(contn_group: pg.sprite.Group):
                                      current_h * 92 / 100,
                                      None, "pressed2"))
     
-    with open("password.txt", encoding="utf-8") as file:
-        password_for_hack = file.read().lower()
-        if len(password_for_hack) > 8:
-            raise Exception("Длина пароля для активации читов не должна превышать 8 символов!")
-    
+    try:
+        with open("password.txt", encoding="utf-8") as file:
+            password_for_hack = file.read().lower()
+            if len(password_for_hack) > 8:
+                raise Exception("Длина пароля для активации читов не должна превышать 8 символов!")
+    except FileNotFoundError:
+        password_for_hack = " "
+        
     index_for_passHack = 0
         
     
@@ -202,17 +205,17 @@ def start(contn_group: pg.sprite.Group):
                     )
     """
 
-    settbutton = cls.ButtonSprite(pg.transform.scale(pg.image.load(os.path.join("Graphics", "Images", "setting.png")), (80, 80)),
+    settbutton = cls.ButtonSprite(pg.transform.scale(pg.image.load(get_file("Graphics", "Images", "setting.png")), (80, 80)),
                                     ("is png",),
-                                    current_w // 2 - 250 / 2 / 2 + 28,
-                                    current_h - pg.image.load(os.path.join("Graphics", "Images", "Instruct_Button.jpg")).get_height() - 40,
+                                    current_w / 2 - 250 / 2 / 2 + 28,
+                                    current_h - pg.image.load(get_file("Graphics", "Images", "Instruct_Button.jpg")).get_height() - 40,
                                     None, "pressed1")
     buttons.add(settbutton)
 
     strelki = (
-                cls.ButtonSprite(pg.image.load(os.path.join("Graphics", "Images/strelkaUP.png")),
+                cls.ButtonSprite(pg.image.load(get_file("Graphics", "Images", "strelkaUP.png")),
                                 ("is png",),
-                                current_w // 2 - 250 / 2 / 2 + 59.5,
+                                current_w / 2 - 250 / 2 / 2 + 59.5,
                                 current_h * 90 / 100,
                                 None, "pressed"),
               )
@@ -240,9 +243,9 @@ def start(contn_group: pg.sprite.Group):
             raise SystemExit
             break
 
-        screen.blit(pg.image.load(os.path.join("Graphics", "Images", "background_start.png")), screen.get_rect())
+        screen.blit(pg.image.load(get_file("Graphics", "Images", "background_start.png")), screen.get_rect())
 
-        big_font = pg.font.Font(os.path.join("Graphics", "Fonts", "load_text.otf"), 50)
+        big_font = pg.font.Font(get_file("Graphics", "Fonts", "load_text.otf"), 50)
         text_welcome = big_font.render("Square VS Eggman", True, (0, 0, 0))
 
         mini_font = pg.font.Font(None, 25)
@@ -289,7 +292,7 @@ def start(contn_group: pg.sprite.Group):
             try:
                 complexity_text = font.render(complexity[complexity_index], True, (0, 0, 0))
                 screen.blit(complexity_text,
-                            (current_w // 2 - 250 / 2 / 2 + 59.5 - complexity_text.get_width() - 10,
+                            (current_w / 2 - 250 / 2 / 2 + 59.5 - complexity_text.get_width() - 10,
                              current_h * 93 / 100))
             except IndexError:
                 complexity_index = 0
@@ -317,7 +320,7 @@ def runMain(complexity_index, # purchased={"щит": 0, "часы": 0, "нитр
 
     sprites = pg.sprite.Group()
     hide_sprites = pg.sprite.Group()
-    hpes = pg.sprite.Group()
+    hpes = cls.GroupWithGetItem()
     cristalles = pg.sprite.Group()
     contn_group = pg.sprite.Group()
 
@@ -352,9 +355,9 @@ def runMain(complexity_index, # purchased={"щит": 0, "часы": 0, "нитр
     player_isCollide_cristalles = False
     p_is_drive_x = False
     p_is_drive_y = False
-    hp1 = cls.Hp(current_w * 5 // 100, current_h * 8 // 100); 
-    hp2 = cls.Hp(current_w * 10 // 100, current_h * 8 // 100); 
-    hp3 = cls.Hp(current_w * 15 // 100, current_h * 8 // 100)
+    hp1 = cls.Hp(current_w * 5 / 100, current_h * 8 / 100); 
+    hp2 = cls.Hp(current_w * 10 / 100, current_h * 8 / 100); 
+    hp3 = cls.Hp(current_w * 15 / 100, current_h * 8 / 100)
     hpes.add(hp1, hp2, hp3)
 
     E_SIZE = 40
@@ -380,10 +383,10 @@ def runMain(complexity_index, # purchased={"щит": 0, "часы": 0, "нитр
     
     text_welcome = pg.font.Font(size=75).render("Square VS Eggman", True, (0, 0, 0))
 
-    contn = cls.ButtonSprite(pg.image.load(os.path.join("Graphics", "Images", "Play_Button.png")),
+    contn = cls.ButtonSprite(pg.image.load(get_file("Graphics", "Images", "Play_Button.png")),
                             ("is png",),
-                            current_w // 2 - 250 / 2, 
-                            current_h // 2 + text_welcome.get_height() + current_h * 0.1 // 100, None, PRESSED)
+                            current_w / 2 - 250 / 2, 
+                            current_h / 2 + text_welcome.get_height() + current_h * 0.1 / 100, None, PRESSED)
     contn_group.add(contn)
 
     if have_hack:
@@ -472,8 +475,8 @@ def runMain(complexity_index, # purchased={"щит": 0, "часы": 0, "нитр
                     pg.mixer.music.play(-1)
                 pause = False
             
-            screen.blit(text_pause, (current_w // 2 - text_pause.get_width() // 2, 
-                        current_h // 2 - text_pause.get_height() // 2))
+            screen.blit(text_pause, (current_w / 2 - text_pause.get_width() / 2, 
+                        current_h / 2 - text_pause.get_height() / 2))
             contn_group.draw(screen)
 
         else:
@@ -511,7 +514,7 @@ def runMain(complexity_index, # purchased={"щит": 0, "часы": 0, "нитр
 
             if key[pg.K_SPACE]:
                 if turbo_ost > 0:
-                    speed_p += 9
+                    speed_p += turbo_speed
                 else:
                     speed_p = standart_speed_p
                 if key[pg.K_d] or key[pg.K_KP6] or key[pg.K_RIGHT] or key[pg.K_w] or key[pg.K_KP8] or key[pg.K_UP] or key[pg.K_s] or key[pg.K_KP5] or key[pg.K_DOWN]:
@@ -661,8 +664,8 @@ def runMain(complexity_index, # purchased={"щит": 0, "часы": 0, "нитр
                 cristall = cls.Cristall(random.randint(40, current_w - 40), random.randint(top_panel_h, current_h - 40)) 
                 cristalles.add(cristall)
                 if player_isCollide_cristalles == False:
-                    hpes.add(cls.Hp(current_w * (hpes.sprites()[-1].rect.x * 100 // current_w + 5) // 100, 
-                                current_h * 8 // 100))
+                    hpes.add(cls.Hp(hpes[-1].screen_width * (hpes[-1].geo_x + 5) / 100, 
+                                    current_h * 8 / 100))
                     player_isCollide_cristalles = True
             else: player_isCollide_cristalles = False
 
@@ -678,7 +681,7 @@ def runMain(complexity_index, # purchased={"щит": 0, "часы": 0, "нитр
             if start_time2 != None:
                 difference2 = int(time.time()) - start_time2
                 timer_stay_time = timer_stay_time_start - difference2
-                screen.blit(font.render(f"До обычного течения времени осталось: {timer_stay_time}", True, (0, 0, 0)), (0, current_h * 15 // 100))
+                screen.blit(font.render(f"До обычного течения времени осталось: {timer_stay_time}", True, (0, 0, 0)), (0, current_h * 15 / 100))
 
             if timer_stay_time is not None and timer_stay_time <= 0:
                 time_retarder = cls.objMiniTime()
@@ -688,7 +691,7 @@ def runMain(complexity_index, # purchased={"щит": 0, "часы": 0, "нитр
                 timer_stay_time = None
 
 
-            current_time_ms = time.time_ns() // 1_000_000
+            current_time_ms = time.time_ns() / 1_000_000
 
             turbo_lst = [el for el in turbo_lst if current_time_ms - el[0] <= 300]
 
@@ -806,12 +809,10 @@ def runMain(complexity_index, # purchased={"щит": 0, "часы": 0, "нитр
         pg.display.flip()
         clock.tick(60)
 
-
-
-runMain(start(pg.sprite.Group(cls.ButtonSprite(pg.image.load(os.path.join("Graphics", "Images", "Play_Button.png")),
+runMain(start(pg.sprite.Group(cls.ButtonSprite(pg.image.load(get_file("Graphics", "Images", "play_button.png")),
                                   ("is png",),
-                                   current_w // 2 - 250 / 2, 
-                                   current_h // 2 + pg.font.Font(size=75).render("Square VS Eggman", 
+                                   current_w / 2 - 250 / 2, 
+                                   current_h / 2 + pg.font.Font(size=75).render("Square VS Eggman", 
                                    True, 
-                                   (0, 0, 0)).get_height() + current_h * 0.1 // 100, 
+                                   (0, 0, 0)).get_height() + current_h * 0.1 / 100, 
                                    None, "pressed1"))))
