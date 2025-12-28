@@ -1,10 +1,11 @@
 # Square VS Eggman
-# Версия 3.2
+# Версия 3.3.
 
 
 from init import *
+from tkinter import messagebox
 
-import random, time, os, json, sys, shop
+import random, time, os, json, sys
 
 import instruction
 import classes as cls
@@ -76,7 +77,7 @@ def end(complexity_index, current_name, font: pg.font.Font, score, color_time, t
         bests = load()["bests_scores"]
         sum_score = load()["bests_scores"][current_name][1]
     else:
-        bests = {current_name: score}
+        bests = {current_name: (score, score)}
         sum_score = score
     
     if current_name not in bests or score > bests[current_name][0]:
@@ -87,9 +88,9 @@ def end(complexity_index, current_name, font: pg.font.Font, score, color_time, t
 
     text_over1 = font.render(text + f" Очки: {score}.", True,
                              (color_time['R'], color_time['G'], color_time['B']))
-    text_over2 = font.render(f"Что бы играть по новой, тыкни по пробелу.", True,
+    text_over2 = font.render(f"Что бы играть по новой, жми на кнопку ниже.", True,
                              (color_time['R'], color_time['G'], color_time['B']))
-    text_over3 = font.render(f"Твой рекорд: {bests[current_name]}", True, 
+    text_over3 = font.render(f"Твой рекорд: {bests[current_name][0]}, твой общий счёт: {bests[current_name][1]}", True, 
                              (color_time['R'], color_time['G'], color_time['B']))
     text_over4 = font.render(f"Другие рекорды:  ", True, 
                             (color_time['R'], color_time['G'], color_time['B']))
@@ -102,6 +103,15 @@ def end(complexity_index, current_name, font: pg.font.Font, score, color_time, t
                              float(current_h * 74 / 100),
                              font.render("следующая пара", True, (255, 255, 255)).get_width() + 15, 
                              font.render("следующая пара", True, (255, 255, 255)).get_height())
+    
+    image_for_play_button = pg.image.load(get_file("Graphics", "Images", "Play_Button.png"))
+    play_button = cls.ButtonSprite(
+                                   image_for_play_button,
+                                   ("is png",),
+                                   current_w / 2 - image_for_play_button.get_width() / 2,
+                                   current_h * 75 / 100, 
+                                   None, "pressed"
+                                   )
 
 
     see_bests = []
@@ -113,7 +123,7 @@ def end(complexity_index, current_name, font: pg.font.Font, score, color_time, t
         see_bests = sorted(other_bests.items(), key=lambda x: x[1], reverse=True)
         
     except Exception as e:
-        print(f"Ошибка при загрузке рекордов: {e}")
+        messagebox.showerror(f"Ошибка при загрузке рекордов: {e}")
         see_bests = []
     
     index_bests = 0
@@ -122,8 +132,14 @@ def end(complexity_index, current_name, font: pg.font.Font, score, color_time, t
     while expectation:
         for event in pg.event.get():
             if event.type == pg.QUIT:
+                if not os.path.exists(os.path.join(os.getcwd(), "bests.json")) or load()["bests_scores"] != bests:
+                    if messagebox.askyesno("Рекорды не сохранены!", "Рекорды ещё не сохранены. Желаете ли вы их сохранить перед закрытием?", 
+                                           icon='question'):
+                        save(bests)
+
                 pg.quit()
                 expectation = False
+                raise SystemExit
                 return
 
             if event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
@@ -131,8 +147,7 @@ def end(complexity_index, current_name, font: pg.font.Font, score, color_time, t
                 if butt_down.collidepoint(mouse_pos) and see_bests:
                     index_bests = (index_bests + 1) % len(see_bests)
 
-        key = pg.key.get_pressed()
-        if key[pg.K_SPACE]:
+        if play_button.update() == "pressed":
             runMain(complexity_index)
             
 
@@ -144,6 +159,7 @@ def end(complexity_index, current_name, font: pg.font.Font, score, color_time, t
 
         screen.fill((0, 128, 0))
         
+        screen.blit(play_button.image, (play_button.rect.x, play_button.rect.y))
 
         screen.blit(text_over1, (current_w / 2 - text_over1.get_width() / 2,
                                  current_h / 2 - text_over1.get_height() / 2))

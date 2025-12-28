@@ -26,6 +26,22 @@ class ButtonSprite(pg.sprite.Sprite):
         self.rect = self.image.get_rect(); self.rect.x = x; self.rect.y = y
         self.in_sprite = in_sprite; self.press_on_sprite = press_on_sprite
 
+    @property
+    def image(self):
+        return self._image
+    
+    @image.setter
+    def image(self, newValue):
+        self._image = newValue
+
+    @property
+    def rect(self):
+        return self._rect
+    
+    @rect.setter
+    def rect(self, newValue):
+        self._rect = newValue
+
     def update(self):
         x, y = pg.mouse.get_pos()
         if self.rect.collidepoint(x, y):
