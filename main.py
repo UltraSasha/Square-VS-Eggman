@@ -247,15 +247,19 @@ def start(contn_group: pg.sprite.Group):
                 pg.quit()
 
             if event.type == pg.KEYUP:
-                expected_letter = password_for_hack[index_for_passHack]
-                if event.key == pgConstantsDict[f"K_{expected_letter}"]:
-                    index_for_passHack += 1
-                else:
+                try:
+                    expected_letter = password_for_hack[index_for_passHack]
+                    if event.key == pgConstantsDict[f"K_{expected_letter}"]:
+                        index_for_passHack += 1
+                    else:
+                        index_for_passHack = 0
+                except:
                     index_for_passHack = 0
 
         if run:
             pass
         else:
+            stopShopServer()
             raise SystemExit
             break
 
@@ -470,6 +474,7 @@ def runMain(complexity_index, # purchased={"щит": 0, "часы": 0, "нитр
 
                 run = False
                 pg.quit()
+                stopShopServer()
                 raise SystemExit
 
             if event.type == pg.VIDEORESIZE:
@@ -824,6 +829,7 @@ def runMain(complexity_index, # purchased={"щит": 0, "часы": 0, "нитр
 
         pg.display.flip()
         clock.tick(60)
+
 
 runMain(start(pg.sprite.Group(cls.ButtonSprite(pg.image.load(get_file("Graphics", "Images", "play_button.png")),
                                   ("is png",),

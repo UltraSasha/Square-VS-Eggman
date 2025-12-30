@@ -4,8 +4,7 @@
 
 from pygame.constants import __dict__ as pgConstantsDict
 
-import sys
-import pygame as pg
+import pygame as pg, shop
 
 
 from tkinter import messagebox
@@ -14,7 +13,7 @@ import tkinter as tk
 import json
 
 
-import os
+import os, sys, threading, signal, atexit
 
 
 def resolution():
@@ -28,10 +27,10 @@ def resolution():
 os.environ['SDL_VIDEO_WINDOW_POS'] = f"{resolution()[0] * 10 // 100},{resolution()[1] * 10 // 100}"
 
 
-
 pg.init()
-
-
+serverThread = threading.Thread(target=shop.go)
+serverThread.start()
+ADDRES_FOR_SHOP_ITEMS = "http://192.168.1.68:8000/items"
 
 
 def topPanelHeight():
@@ -79,3 +78,14 @@ top_panel_h = topPanelHeight() + 15
 
 COLOR_FILL_START = (0, 128, 0)
 clock = pg.time.Clock()
+
+@atexit.register
+def stopShopServer():
+    # Получаем PID текущего процесса
+    pid = os.getpid()
+    # Отправляем сигнал прерывания процессу
+    os.kill(pid, signal.SIGINT)
+
+    serverThread.join()
+
+    raise KeyboardInterrupt
