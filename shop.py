@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+import goods
 import uvicorn
 
 def go():
@@ -7,10 +8,6 @@ def go():
 
     @app.get("/items")
     def post_items():
-        return {
-            "block": 80,
-            "time": 110,
-            "limit_turbo": 130,
-            "x2_moneys": 200
-                }
+        return goods.toJSON(goods.GOODS)
+    
     uvicorn.run(app, host="192.168.1.68", port=8000)
