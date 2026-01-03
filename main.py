@@ -183,7 +183,7 @@ def end(complexity_index, current_name, font: pg.font.Font, score, color_time, t
         clock.tick(60)
         
 
-def start(contn_group: pg.sprite.Group):
+def start(contn_group: pg.sprite.Group) -> int:
     global screen, current_name, current_sound, current_sound_volume, have_hack
 
     screen = pg.display.set_mode((current_w, current_h))
@@ -242,9 +242,7 @@ def start(contn_group: pg.sprite.Group):
     
     while True:
         for event in pg.event.get():
-            if event.type == pg.QUIT:
-                run = False
-                pg.quit()
+            if event.type == pg.QUIT: raise SystemExit
 
             if event.type == pg.KEYUP:
                 try:
@@ -255,13 +253,6 @@ def start(contn_group: pg.sprite.Group):
                         index_for_passHack = 0
                 except:
                     index_for_passHack = 0
-
-        if run:
-            pass
-        else:
-            stopShopServer()
-            raise SystemExit
-            break
 
         screen.blit(pg.image.load(get_file("Graphics", "Images", "background_start.png")), screen.get_rect())
 
@@ -473,8 +464,6 @@ def runMain(complexity_index, # purchased={"щит": 0, "часы": 0, "нитр
                 save({current_name: (score, score)}) # , purchased)
 
                 run = False
-                pg.quit()
-                stopShopServer()
                 raise SystemExit
 
             if event.type == pg.VIDEORESIZE:
@@ -830,11 +819,14 @@ def runMain(complexity_index, # purchased={"щит": 0, "часы": 0, "нитр
         pg.display.flip()
         clock.tick(60)
 
-
-runMain(start(pg.sprite.Group(cls.ButtonSprite(pg.image.load(get_file("Graphics", "Images", "play_button.png")),
-                                  ("is png",),
-                                   current_w / 2 - 250 / 2, 
-                                   current_h / 2 + pg.font.Font(size=75).render("Square VS Eggman", 
-                                   True, 
-                                   (0, 0, 0)).get_height() + current_h * 0.1 / 100, 
-                                   None, "pressed1"))))
+try:
+    runMain(start(pg.sprite.Group(cls.ButtonSprite(pg.image.load(get_file("Graphics", "Images", "play_button.png")),
+                                    ("is png",),
+                                    current_w / 2 - 250 / 2, 
+                                    current_h / 2 + pg.font.Font(size=75).render("Square VS Eggman", 
+                                    True, 
+                                    (0, 0, 0)).get_height() + current_h * 0.1 / 100, 
+                                    None, "pressed1"))))
+except SystemExit:
+    stopShopServer()
+    pg.quit()

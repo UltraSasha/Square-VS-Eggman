@@ -13,7 +13,7 @@ import tkinter as tk
 import json
 
 
-import os, sys, threading, signal, atexit
+import os, sys, threading, atexit
 
 
 def resolution():
@@ -73,19 +73,12 @@ except:
 
 top_panel_h = topPanelHeight() + 15
 
-
-
-
 COLOR_FILL_START = (0, 128, 0)
 clock = pg.time.Clock()
 
 @atexit.register
 def stopShopServer():
-    # Получаем PID текущего процесса
-    pid = os.getpid()
-    # Отправляем сигнал прерывания процессу
-    os.kill(pid, signal.SIGINT)
-
-    serverThread.join()
-
-    raise KeyboardInterrupt
+    if shop.uvicorn_server is not None:
+        shop.uvicorn_server.should_exit = True
+        serverThread.join()
+        shop.uvicorn_server = None
